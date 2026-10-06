@@ -1,23 +1,60 @@
 # Asistente IA DINDES
 
-Proyecto preparado para ejecutar en **Visual Studio Code**.
+Proyecto académico preparado para ejecutarse en **Visual Studio Code** y alojado en un repositorio público de **GitHub**.
 
-Este repositorio contiene la implementación académica de la actividad **Diagnóstico de Overfitting/Underfitting — Semana 3** aplicada al proyecto **Asistente de IA para Innovación, Desarrollo y Gestión del Conocimiento Técnico — DINDES**.
+El sistema corresponde al proyecto **“Asistente de IA para Innovación, Desarrollo y Gestión del Conocimiento Técnico — DINDES”**, desarrollado en el marco del curso **Proyecto Integrador en Inteligencia Artificial (MIAR0545)** de la Universidad de Especialidades Espíritu Santo (UEES).
 
-> **Nota metodológica:** el MVP del Asistente utiliza una arquitectura RAG y no realiza fine-tuning de Qwen con los documentos institucionales. Para esta actividad se analiza un **clasificador auxiliar de relevancia pregunta-documento**, asociado conceptualmente al proceso de retrieval/reranking.
+> El proyecto utiliza una arquitectura **RAG (Retrieval-Augmented Generation)** con ejecución local/on-premise. El objetivo es consultar documentación autorizada, recuperar evidencia relevante y generar respuestas sustentadas con trazabilidad hacia las fuentes.
 
-## Estructura
+---
+
+## Estado del proyecto
+
+El repositorio ya cuenta con una línea base funcional y con documentación progresiva del proyecto.
+
+### Historial de commits principales
+
+| # | Commit | Descripción |
+|---|---|---|
+| 1 | `c965e25` | Estructura inicial del proyecto y baseline de Semana 3 |
+| 2 | `4cb7700` | Documento de planificación y licencia |
+| 3 | `e47edaa` | Análisis de datos, arquitectura y visualizaciones EDA |
+| 4 | `7f3bbc6` | Dataset de inventario y documentación de optimización, ética y manual de usuario |
+
+El versionamiento continuará mediante commits pequeños y descriptivos.
+
+---
+
+## Estructura actual del proyecto
 
 ```text
 Asistente_IA/
 ├── .vscode/
 │   ├── extensions.json
 │   └── settings.json
+│
+├── app/
+│   └── .gitkeep
+│
 ├── data/
 │   ├── Dataset_1_Documentacion_Tecnica_DINDES_Sample.csv
+│   ├── Dataset_2_Inventario_Institucional_DINDES_Sample.csv
 │   └── Dataset_3_Evaluacion_QA_Asistente_IA_Sample.csv
+│
+├── docs/
+│   ├── planificacion.md
+│   ├── analisis_datos.md
+│   ├── arquitectura.md
+│   ├── optimizacion.md
+│   ├── consideraciones_eticas.md
+│   └── manual_usuario.md
+│
+├── models/
+│   └── .gitkeep
+│
 ├── notebooks/
 │   └── overfitting_analysis.ipynb
+│
 ├── outputs/
 │   └── figures/
 │       ├── 01_training_validation_loss.png
@@ -27,34 +64,311 @@ Asistente_IA/
 │       ├── 05_learning_curve_dataset_size.png
 │       ├── 06_validation_curve_alpha.png
 │       └── 07_comparacion_estrategias_f1.png
+│
+├── results/
+│   ├── .gitkeep
+│   └── figures/
+│       ├── eda_01_documentos_por_tipo.png
+│       ├── eda_02_estado_fuentes.png
+│       ├── eda_03_inventario_por_categoria.png
+│       ├── eda_04_estado_inventario.png
+│       ├── eda_05_qa_por_dificultad.png
+│       └── eda_06_desbalance_pares_relevancia.png
+│
 ├── src/
 │   └── overfitting_utils.py
+│
+├── tests/
+│   └── .gitkeep
+│
 ├── .gitignore
+├── LICENSE
+├── README.md
 ├── requirements.txt
 ├── setup_windows.bat
-├── verificar_entorno.py
-└── README.md
+└── verificar_entorno.py
 ```
+
+> La carpeta `.venv/` existe localmente, pero está excluida mediante `.gitignore` y no se publica en GitHub.
+
+---
+
+## Descripción del problema
+
+DINDES gestiona documentación técnica, información de proyectos, inventarios, informes y otros recursos de conocimiento que deben ser consultados de manera eficiente por personal autorizado.
+
+La búsqueda manual puede:
+
+- consumir tiempo;
+- dificultar la trazabilidad;
+- depender del conocimiento individual;
+- complicar la reutilización de antecedentes técnicos.
+
+El proyecto propone un asistente de IA que permita realizar consultas en lenguaje natural y recuperar información relevante desde fuentes autorizadas.
+
+---
+
+## Objetivo general
+
+Desarrollar un prototipo funcional de asistente de inteligencia artificial local, basado en una arquitectura **RAG**, que permita consultar y recuperar conocimiento técnico de DINDES de forma contextualizada, trazable y segura.
+
+---
+
+## Usuarios objetivo
+
+El sistema está orientado a personal autorizado que requiera consultar:
+
+- documentación técnica;
+- antecedentes de proyectos;
+- inventario institucional;
+- informes;
+- procedimientos;
+- información estructurada de apoyo.
+
+---
+
+## Arquitectura propuesta
+
+```text
+Documentos autorizados
+        ↓
+Extracción y limpieza
+        ↓
+Chunking + metadatos
+        ↓
+Embeddings ───────────────┐
+        ↓                  │
+Base vectorial            │
+                           ├──→ Recuperación híbrida → Reranking → Top-K
+BM25 / búsqueda léxica ───┘                               ↓
+                                                        Qwen local
+                                                           ↓
+                                               Respuesta + fuentes
+                                                           ↓
+                                                   Aplicación web
+```
+
+La estrategia principal del MVP es **RAG**, no fine-tuning del LLM con documentación institucional.
+
+---
+
+## Dataset
+
+El repositorio utiliza únicamente **datasets sample sintéticos** para fines académicos.
+
+### Dataset 1 — Documentación técnica
+
+```text
+data/Dataset_1_Documentacion_Tecnica_DINDES_Sample.csv
+```
+
+Contiene documentos técnicos sample con:
+
+- identificadores;
+- proyectos;
+- tipo de documento;
+- título;
+- versión;
+- sección;
+- chunk;
+- texto;
+- estado de fuente;
+- nivel de acceso.
+
+### Dataset 2 — Inventario institucional
+
+```text
+data/Dataset_2_Inventario_Institucional_DINDES_Sample.csv
+```
+
+Contiene:
+
+- código;
+- descripción;
+- categoría;
+- marca;
+- modelo;
+- cantidad;
+- estado;
+- ubicación;
+- responsable.
+
+### Dataset 3 — Evaluación QA
+
+```text
+data/Dataset_3_Evaluacion_QA_Asistente_IA_Sample.csv
+```
+
+Contiene preguntas de evaluación, fuente esperada, respuesta esperada, dificultad y criterio de respondibilidad.
+
+> No se publican documentos institucionales reales, datos sensibles ni información operativa no autorizada.
+
+---
+
+## Metodología
+
+### Diagnóstico de Semana 3
+
+Se implementó un clasificador auxiliar de relevancia **pregunta-documento** para estudiar:
+
+- overfitting;
+- underfitting;
+- desbalance;
+- data leakage;
+- tracking de métricas;
+- feature engineering;
+- learning curves;
+- validation curves.
+
+El split experimental se realiza por `qa_id` antes de la aumentación y esta se aplica únicamente a training.
+
+### Estrategias evaluadas
+
+1. Modelo base: TF-IDF + SGDClassifier.
+2. Balanceo de clases.
+3. Feature Engineering.
+4. Early stopping como análisis complementario.
+
+---
+
+## Resultados de referencia
+
+| Modelo | Accuracy | Precision | Recall | F1 |
+|---|---:|---:|---:|---:|
+| Modelo base | 0.8750 | 0.0000 | 0.0000 | 0.0000 |
+| Balanceo de clases | 0.5000 | 0.0000 | 0.0000 | 0.0000 |
+| Feature Engineering | 0.8125 | 0.4000 | 1.0000 | 0.5714 |
+
+Matriz de confusión del modelo con Feature Engineering:
+
+```text
+TN = 11
+FP = 3
+FN = 0
+TP = 2
+```
+
+> El `Recall = 1.00` corresponde a 2 de 2 positivos en validation, por lo que no debe interpretarse como desempeño operacional.
+
+---
+
+## Diagnóstico
+
+Los resultados actuales no muestran un patrón clásico de overfitting.
+
+Las principales limitaciones identificadas son:
+
+- fuerte desbalance de clases;
+- tamaño reducido del sample;
+- alta variabilidad estadística;
+- representación insuficiente de la relación pregunta-documento en el modelo base.
+
+La mejora más relevante se obtuvo mediante **Feature Engineering**.
+
+---
+
+## Documentación disponible
+
+La carpeta `docs/` contiene:
+
+| Documento | Estado |
+|---|---|
+| `planificacion.md` | Inicial completo |
+| `analisis_datos.md` | Inicial completo |
+| `arquitectura.md` | Inicial completo |
+| `optimizacion.md` | Parcial; Workshop S5 pendiente |
+| `consideraciones_eticas.md` | Inicial completo |
+| `manual_usuario.md` | Estructurado; capturas de la app pendientes |
+
+---
+
+## Visualizaciones
+
+### Semana 3
+
+```text
+outputs/figures/
+```
+
+Incluye:
+
+- Training vs Validation Loss;
+- Training vs Validation Accuracy;
+- Precision/Recall/F1;
+- matriz de confusión;
+- Learning Curve;
+- Validation Curve;
+- comparación final de estrategias.
+
+### EDA
+
+```text
+results/figures/
+```
+
+Incluye 6 visualizaciones del análisis exploratorio de datos.
+
+Todas las figuras académicas principales se generan a **300 DPI**.
+
+---
+
+## Interfaz web
+
+La interfaz prevista para el MVP será desarrollada con **Streamlit**.
+
+Flujo esperado:
+
+```text
+Usuario
+  ↓
+Aplicación web
+  ↓
+Consulta
+  ↓
+Retrieval híbrido
+  ↓
+Reranking
+  ↓
+Top-K fuentes
+  ↓
+Qwen local
+  ↓
+Respuesta + fuentes + scores
+```
+
+La app se incorporará en:
+
+```text
+app/app.py
+```
+
+Ejecución prevista:
+
+```powershell
+streamlit run app/app.py
+```
+
+---
+
+## Indicadores de éxito del MVP
+
+| Indicador | Meta |
+|---|---:|
+| Precision@5 | ≥ 85 % |
+| Grounded Response Rate | ≥ 90 % |
+| Tiempo de respuesta | ≤ 10 s |
+| Reducción del tiempo de búsqueda | ≥ 50 % |
+| Satisfacción del usuario | ≥ 4/5 |
+
+Estas metas deberán validarse con datos suficientes antes de considerarse resultados operacionales.
+
+---
 
 ## Instalación rápida en Windows
 
-1. Abra la carpeta completa del proyecto en VS Code mediante **File > Open Folder**.
-2. Abra una terminal integrada.
-3. Ejecute:
+Abrir la carpeta completa del proyecto en Visual Studio Code.
 
-```bat
-.\setup_windows.bat
-```
-
-El script crea el entorno virtual `.venv`, instala las dependencias y registra el kernel:
-
-```text
-Python (Asistente IA DINDES)
-```
-
-## Instalación manual
-
-En PowerShell:
+Desde PowerShell:
 
 ```powershell
 py -m venv .venv
@@ -65,175 +379,124 @@ pip install -r requirements.txt
 python -m ipykernel install --user --name asistente-ia-dindes --display-name "Python (Asistente IA DINDES)"
 ```
 
-La modificación de `ExecutionPolicy` con `-Scope Process` solo afecta a la sesión actual de PowerShell.
+---
 
-## Verificación del entorno
-
-Con el entorno virtual activo:
+## Verificación
 
 ```powershell
 python verificar_entorno.py
 ```
 
-La salida debe confirmar la presencia de los datasets, el notebook y las librerías principales.
+---
 
-## Ejecutar el notebook
+## Ejecutar el notebook actual
 
-Abra:
+Abrir:
 
 ```text
 notebooks/overfitting_analysis.ipynb
 ```
 
-En la esquina superior derecha seleccione:
+Seleccionar el kernel:
 
 ```text
 Python (Asistente IA DINDES)
 ```
 
-Para revisión académica se recomienda ejecutar inicialmente **celda por celda**. Una vez validado el flujo completo puede utilizarse **Run All**.
+Para una primera validación se recomienda ejecutar celda por celda y posteriormente utilizar **Run All**.
 
-## Metodología del experimento
+---
 
-El notebook implementa los siguientes controles para reducir errores metodológicos:
+## Consideraciones éticas
 
-1. Construcción de pares **pregunta-documento** con etiqueta binaria de relevancia.
-2. Separación de training y validation por `qa_id` **antes de realizar aumentación de datos**.
-3. Aumentación aplicada exclusivamente al conjunto de training.
-4. Validación sin datos aumentados.
-5. Tracking por época de:
-   - Training Loss
-   - Validation Loss
-   - Training Accuracy
-   - Validation Accuracy
-   - Precision
-   - Recall
-   - F1-Score
-6. Curvas avanzadas con `learning_curve` y `validation_curve` de Scikit-learn.
-7. Validación cruzada agrupada mediante `GroupKFold` para mantener separados los `qa_id`.
+El proyecto incorpora:
 
-Este diseño evita que variantes de una misma pregunta aparezcan simultáneamente en training y validation, reduciendo el riesgo de **data leakage**.
+- privacidad por diseño;
+- supervisión humana;
+- trazabilidad;
+- abstención cuando no exista evidencia suficiente;
+- protección de información institucional;
+- análisis de sesgo de cobertura;
+- limitaciones claramente documentadas.
 
-## Estrategias evaluadas
+El asistente no debe sustituir el criterio de especialistas ni utilizarse como única fuente para decisiones críticas.
 
-### Modelo base
-
-Se utiliza:
+Ver:
 
 ```text
-TF-IDF + SGDClassifier (log_loss)
+docs/consideraciones_eticas.md
 ```
 
-El modelo base puede obtener una accuracy aparentemente elevada debido al desbalance de clases, pero no identifica adecuadamente los documentos relevantes.
+---
 
-### Mejora 1 — Balanceo de clases
+## Seguridad
 
-Se calculan pesos de clase y se aplican mediante `sample_weight` durante el entrenamiento.
+No deben subirse al repositorio público:
 
-En el dataset sample, esta estrategia no fue suficiente para mejorar el F1 de la clase relevante.
+- credenciales;
+- tokens;
+- claves privadas;
+- documentos institucionales reales no autorizados;
+- bases vectoriales derivadas de información sensible;
+- logs con información restringida.
 
-### Mejora 2 — Feature Engineering
+---
 
-Se incorporan características explícitas de la relación pregunta-documento:
+## Autores
 
-- similitud coseno TF-IDF;
-- solapamiento de términos;
-- relación de longitud;
-- coincidencia de términos técnicos (`technical_overlap`).
+### Juan Carlos Bajaña Gutiérrez
+Participación en planificación, desarrollo técnico, experimentación, documentación y arquitectura.
 
-El modelo de esta etapa utiliza `LogisticRegression` con clases balanceadas.
+### José Luis Peñafiel Fernández
+Participación en análisis, desarrollo, evaluación y documentación del proyecto.
 
-## Resultados de referencia
+---
 
-Sobre el conjunto sample utilizado en la actividad se obtuvieron los siguientes resultados:
+## Licencia
 
-| Modelo | Accuracy | Precision | Recall | F1 |
-|---|---:|---:|---:|---:|
-| Modelo base | 0.8750 | 0.0000 | 0.0000 | 0.0000 |
-| Balanceo de clases | 0.5000 | 0.0000 | 0.0000 | 0.0000 |
-| Feature Engineering | 0.8125 | 0.4000 | 1.0000 | 0.5714 |
-
-La matriz de confusión del modelo con Feature Engineering fue:
+Este repositorio utiliza una versión en español de la **Licencia MIT**, incluida en:
 
 ```text
-TN = 11
-FP = 3
-FN = 0
-TP = 2
+LICENSE
 ```
 
-> El `Recall = 1.00` debe interpretarse con cautela porque validation contiene únicamente **2 ejemplos positivos**. Significa 2 de 2 positivos detectados, no desempeño operacional del sistema.
+---
 
-## Diagnóstico
+## Trabajo pendiente
 
-Los resultados no muestran un patrón clásico de **overfitting**. La evidencia apunta principalmente a:
+Próximos componentes:
 
-- fuerte desbalance de clases;
-- reducido tamaño del dataset;
-- alta variabilidad del conjunto de validation;
-- representación insuficiente de la relación pregunta-documento en el modelo base.
-
-El **Feature Engineering** fue la estrategia que produjo la mejora más significativa.
-
-## Curvas y visualizaciones
-
-Al ejecutar el notebook, los gráficos se almacenan automáticamente en:
-
-```text
-outputs/figures/
-```
-
-Las figuras se guardan a **300 DPI** e incluyen títulos, etiquetas de ejes, leyendas, grid y anotaciones en puntos críticos cuando corresponde.
-
-Se generan:
-
-1. Training vs Validation Loss.
-2. Training vs Validation Accuracy.
-3. Precision, Recall y F1 del modelo base.
-4. Matriz de confusión del Feature Engineering.
-5. Learning Curve por tamaño de dataset.
-6. Validation Curve para el hiperparámetro `alpha`.
-7. Comparación final del F1 entre estrategias.
-
-## Código modular
-
-El archivo:
-
-```text
-src/overfitting_utils.py
-```
-
-contiene funciones reutilizables para:
-
-- construir pares pregunta-documento;
-- dividir por `qa_id` sin data leakage;
-- aplicar aumentación solo sobre training;
-- entrenar un `SGDClassifier` con tracking de métricas;
-- aplicar balanceo de clases;
-- calcular features de similitud;
-- obtener métricas de clasificación.
-
-## Consideraciones para el Asistente RAG real
-
-Este experimento se realizó sobre datasets sample y no constituye una evaluación operacional del Asistente DINDES.
-
-En la implementación RAG real debe evitarse ajustar repetidamente parámetros como:
-
-- chunking;
-- Top-K;
-- pesos dense/BM25;
+- reorganización de notebooks;
+- modularización completa de `src/`;
+- pipeline de ingesta;
+- embeddings;
+- base vectorial;
+- BM25;
+- recuperación híbrida;
 - reranking;
+- integración con Qwen local;
+- aplicación Streamlit;
+- pruebas unitarias;
+- Workshop S5;
+- métricas end-to-end;
+- capturas del manual;
+- video pitch;
+- video de respuestas.
 
-sobre el mismo conjunto QA utilizado para reportar métricas finales.
+---
 
-Se recomienda separar:
+## Repositorio
+
+Repositorio público:
 
 ```text
-Desarrollo / validación
-        ↓
-Ajuste de parámetros
-        ↓
-Conjunto de prueba final independiente
+https://github.com/juanbajanag/asistente-ia-dindes
 ```
 
-Esto permitirá evaluar de forma más confiable la capacidad de generalización del sistema.
+---
+
+## Advertencia
+
+Los resultados actuales corresponden a datasets sample y actividades académicas.
+
+No representan desempeño operacional del futuro sistema institucional.
