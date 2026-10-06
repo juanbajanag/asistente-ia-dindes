@@ -1,0 +1,11 @@
+﻿codigo,descripcion,categoria,marca,modelo,cantidad,unidad,estado,ubicacion,responsable,fecha_actualizacion
+INV-0001,Computador de alto rendimiento,Computación,Intel/ASUS,Workstation IA,2,unidad,Operativo,Laboratorio IA,DINDES,2026-09-15
+INV-0002,GPU para procesamiento IA,Computación,NVIDIA,RTX 5080 16GB,2,unidad,Operativo,Laboratorio IA,DINDES,2026-09-15
+INV-0003,Osciloscopio digital,Instrumentación,Keysight,DSOX-series,1,unidad,Operativo,Laboratorio Electrónica,DINDES,2026-09-10
+INV-0004,Analizador de espectro,Instrumentación,Rohde & Schwarz,FPC-series,1,unidad,Operativo,Laboratorio RF,DINDES,2026-09-10
+INV-0005,Generador de señales,Instrumentación,Siglent,SDG-series,1,unidad,Operativo,Laboratorio RF,DINDES,2026-09-10
+INV-0006,Microcontrolador,Electrónica,Espressif,ESP32-POE,8,unidad,Disponible,Almacén Electrónica,DINDES,2026-09-12
+INV-0007,Computador embebido,Computación embebida,NVIDIA,Jetson Orin Nano,3,unidad,Disponible,Almacén Electrónica,DINDES,2026-09-12
+INV-0008,Impresora 3D,Fabricación digital,Creality,K1,1,unidad,Operativo,Taller Prototipado,DINDES,2026-09-05
+INV-0009,UPS,Energía,Genérica,10 kVA,1,unidad,Operativo,Laboratorio IA,DINDES,2026-09-01
+INV-0010,Switch PoE,Redes,Cisco,Catalyst C1200 16P PoE+,2,unidad,Disponible,Laboratorio Redes,DINDES,2026-09-08
