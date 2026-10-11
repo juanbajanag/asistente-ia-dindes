@@ -2,18 +2,19 @@
 
 ## 1. Propósito
 
-Este documento describe el uso previsto de la aplicación web del proyecto **Asistente de IA para Innovación, Desarrollo y Gestión del Conocimiento Técnico — DINDES**.
+Este manual describe el uso previsto de la aplicación web del **Asistente IA DINDES**.
 
-> **Estado actual:** la interfaz Streamlit todavía se encuentra en desarrollo. Este manual define el flujo esperado y deberá actualizarse con capturas reales cuando la aplicación esté implementada.
+> **Estado actual:** la interfaz final todavía está en desarrollo. Este documento será actualizado con capturas reales cuando `app/app.py` esté implementado.
 
-## 2. Requisitos
+---
 
-- Windows 10/11.
-- Python.
-- Entorno virtual del proyecto.
-- Dependencias instaladas.
-- Modelo local disponible.
-- Índice documental generado.
+## 2. Principio de uso
+
+El asistente **informa y apoya; no decide**.
+
+Las respuestas deben considerarse un punto de partida para consultar antecedentes y no un sustituto de la documentación oficial ni del criterio técnico.
+
+---
 
 ## 3. Iniciar la aplicación
 
@@ -21,212 +22,178 @@ Desde la raíz del proyecto:
 
 ```powershell
 .\.venv\Scripts\Activate.ps1
-```
-
-Luego:
-
-```powershell
 streamlit run app/app.py
 ```
 
-La aplicación debería abrirse en:
+URL prevista:
 
 ```text
 http://localhost:8501
 ```
 
-> Este comando deberá validarse cuando `app/app.py` esté implementado.
+---
 
-## 4. Pantalla principal prevista
+## 4. Realizar una consulta
 
-La interfaz incluirá:
+1. Ingresar una pregunta específica.
+2. Presionar **Consultar**.
+3. Esperar el proceso de retrieval, reranking y generación.
+4. Revisar la respuesta.
+5. Revisar las fuentes y evidencias antes de utilizar la información.
 
-1. Título.
-2. Campo de consulta.
-3. Botón **Consultar**.
-4. Ejemplos precargados.
-5. Área de respuesta.
-6. Fuentes utilizadas.
-7. Scores de relevancia.
-8. Sección **Acerca de**.
-9. Métricas y limitaciones.
-10. Mensajes de error o advertencia.
+---
 
-## 5. Realizar una consulta
+## 5. Evidencias que debe mostrar la interfaz
 
-### Paso 1
-Escribir una pregunta.
+Cuando estén disponibles:
 
-### Paso 2
-Presionar **Consultar**.
-
-### Paso 3
-El sistema procesará:
-
-```text
-Pregunta
-→ retrieval
-→ recuperación híbrida
-→ reranking
-→ selección de fuentes
-→ Qwen local
-→ respuesta
-```
-
-### Paso 4
-Revisar respuesta, fuentes, fragmentos recuperados, relevancia y advertencias.
-
-## 6. Interpretación de resultados
-
-El usuario deberá verificar:
-
-- título del documento;
+- título de la fuente;
 - sección;
+- fragmento relevante;
 - fecha;
 - versión;
-- estado de la fuente.
+- estado;
+- score de relevancia.
 
-Cuando la evidencia sea insuficiente, el sistema deberá indicarlo explícitamente.
+---
 
-## 7. Ejemplos de uso
+## 6. Cuando no existe evidencia suficiente
 
-La versión final incluirá ejemplos precargados de:
-
-- documentación técnica;
-- inventario;
-- proyectos;
-- procedimientos;
-- antecedentes.
-
-## 8. Consulta sin evidencia
+El sistema debe abstenerse.
 
 Mensaje esperado:
 
-> No se encontró evidencia suficiente en las fuentes disponibles para responder esta consulta.
+> **No se encontró evidencia suficiente en las fuentes disponibles para responder esta consulta.**
 
-El sistema no debe inventar una respuesta.
+El usuario no debe interpretar una abstención como error: es un mecanismo de seguridad.
 
-## 9. Errores frecuentes
+---
 
-### La aplicación no inicia
+## 7. Verificación humana
 
-```powershell
-pip install -r requirements.txt
-```
+Antes de utilizar una respuesta en una decisión importante:
 
-y:
+- revisar la fuente original;
+- confirmar vigencia y versión;
+- verificar que el documento corresponde al contexto;
+- consultar a un especialista cuando sea necesario.
 
-```powershell
-streamlit --version
-```
+---
 
-### No se encuentra el modelo
+## 8. Reportar una respuesta o fuente
 
-Verificar la configuración local.
+La interfaz final deberá incorporar un mecanismo de reporte.
 
-### No se encuentra el índice
+Casos:
 
-Verificar que el pipeline de ingesta haya sido ejecutado.
+- respuesta incorrecta;
+- respuesta incompleta;
+- fuente no apropiada;
+- fuente desactualizada;
+- posible acceso indebido;
+- comportamiento inesperado.
 
-## 10. Troubleshooting
+---
 
-| Problema | Acción recomendada |
-|---|---|
-| `ModuleNotFoundError` | Instalar `requirements.txt` |
-| Streamlit no reconocido | Instalar Streamlit en `.venv` |
-| Puerto 8501 ocupado | Ejecutar con otro puerto |
-| Modelo no carga | Revisar ruta y memoria |
-| Índice vacío | Ejecutar ingesta |
-| Respuesta sin fuentes | No utilizarla; revisar retrieval |
-| Consulta muy amplia | Reformular |
+## 9. Proceso de apelación y escalamiento
 
-Ejemplo para otro puerto:
+Si el usuario no está de acuerdo con una respuesta:
 
-```powershell
-streamlit run app/app.py --server.port 8502
-```
+1. reportar la consulta;
+2. solicitar revisión de la fuente;
+3. el caso se registra;
+4. se escala al responsable funcional o custodio de información;
+5. si corresponde, se remite a la autoridad competente;
+6. la resolución se documenta para trazabilidad.
 
-## 11. Buenas prácticas
+---
+
+## 10. Buenas prácticas
 
 - formular preguntas específicas;
-- revisar fuentes;
-- verificar información crítica;
+- revisar siempre las fuentes;
 - no ingresar información no autorizada;
-- no compartir resultados sensibles;
-- reportar errores.
+- no utilizar respuestas como única base de decisiones críticas;
+- reportar errores;
+- respetar permisos y necesidad de conocer.
+
+---
+
+## 11. Seguridad y privacidad
+
+No ingresar:
+
+- contraseñas;
+- tokens;
+- claves;
+- información clasificada no autorizada;
+- datos personales innecesarios.
+
+El acceso a información depende del rol del usuario.
+
+---
 
 ## 12. Limitaciones
 
-La versión MVP:
+El MVP:
 
-- trabaja con corpus limitado;
+- trabaja con un corpus limitado;
 - puede no responder fuera del corpus;
 - puede recuperar fuentes incorrectas;
+- puede usar información desactualizada si el corpus no se mantiene;
 - puede producir errores de generación;
 - no sustituye especialistas.
 
-## 13. Seguridad
+---
 
-No ingresar contraseñas, claves, tokens, información clasificada no autorizada o datos personales innecesarios.
+## 13. Troubleshooting
 
-## 14. Sección Acerca de
+| Problema | Acción |
+|---|---|
+| `ModuleNotFoundError` | Ejecutar `pip install -r requirements.txt` |
+| Streamlit no reconocido | Instalar Streamlit dentro de `.venv` |
+| Modelo no carga | Revisar configuración y memoria |
+| Índice vacío | Ejecutar pipeline de ingesta |
+| Respuesta sin fuentes | No utilizarla; revisar retrieval |
+| Fuente desactualizada | Reportar y solicitar revisión |
+| Acceso denegado | Verificar permisos con el administrador |
 
-La app deberá mostrar:
+---
 
-- objetivo;
-- arquitectura RAG;
-- modelo;
-- métricas;
-- limitaciones;
-- versión;
-- equipo desarrollador.
+## 14. FAQ
 
-## 15. Capturas de pantalla
-
-**Pendiente.**
-
-Cuando la interfaz esté implementada se incorporarán capturas anotadas de:
-
-1. pantalla principal;
-2. consulta;
-3. respuesta;
-4. fuentes;
-5. ejemplo precargado;
-6. error controlado.
-
-## 16. FAQ
-
-### ¿El asistente conoce todo lo que existe en DINDES?
-No. Solo puede utilizar las fuentes cargadas y autorizadas.
+### ¿El asistente toma decisiones?
+No. Proporciona información y evidencia para apoyar al usuario.
 
 ### ¿Puede equivocarse?
-Sí. Por eso deben revisarse las fuentes.
+Sí. Por eso las fuentes deben revisarse.
 
-### ¿El modelo fue entrenado con los documentos?
-El MVP utiliza RAG. Los documentos se recuperan y entregan como contexto al modelo; no se plantea fine-tuning del LLM como estrategia principal.
+### ¿Qué ocurre si no existe suficiente información?
+Debe abstenerse.
 
-### ¿Necesita Internet?
-El objetivo es operar localmente. Algunas tareas de instalación pueden requerir Internet.
+### ¿Todos los usuarios ven los mismos documentos?
+No necesariamente. El acceso debe depender del rol y de la necesidad de conocer.
 
-### ¿Puedo cargar cualquier documento?
-No. Solo documentos autorizados.
+### ¿Puedo cuestionar una respuesta?
+Sí. El diseño contempla reporte, apelación y escalamiento.
 
-### ¿Qué ocurre si no existe información?
-El sistema deberá abstenerse y comunicar que no dispone de evidencia suficiente.
+### ¿Puede usarse información real en GitHub?
+No, salvo que exista autorización expresa y sea apropiado publicarla.
 
-## 17. Soporte
+---
 
-Responsables académicos:
+## 15. Advertencia visible recomendada
 
-- Juan Carlos Bajaña Gutiérrez
-- José Luis Peñafiel Fernández
+> **Aviso:** Este asistente es una herramienta de apoyo. Las respuestas dependen del corpus disponible y pueden contener errores o información desactualizada. Verifique las fuentes originales antes de utilizar la información en decisiones técnicas, administrativas u operativas.
 
-## 18. Pendientes antes de la entrega final
+---
 
+## 16. Pendientes antes de la entrega final
+
+- implementar `app/app.py`;
 - validar comandos reales;
-- incorporar capturas;
-- completar ejemplos;
-- documentar errores reales;
-- agregar instrucciones de carga de documentos;
-- actualizar FAQ;
-- incorporar métricas finales.
+- agregar capturas anotadas;
+- documentar autenticación y permisos;
+- implementar botón de reporte;
+- incorporar ejemplos reales de abstención;
+- actualizar métricas finales.

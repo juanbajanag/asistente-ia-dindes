@@ -2,245 +2,198 @@
 
 ## 1. Propósito
 
-Este documento analiza los principales aspectos éticos del proyecto **Asistente de IA para Innovación, Desarrollo y Gestión del Conocimiento Técnico — DINDES**.
+Este documento consolida el análisis ético del proyecto **Asistente de IA para Innovación, Desarrollo y Gestión del Conocimiento Técnico — DINDES** y recoge los resultados del workshop de Semana 4 sobre impacto social y responsabilidad.
 
-El sistema se plantea como una herramienta de apoyo para búsqueda, recuperación y gestión del conocimiento. No debe sustituir el criterio profesional, técnico ni institucional.
+El sistema se concibe como una herramienta de apoyo para búsqueda, recuperación y gestión del conocimiento. No sustituye el criterio profesional, técnico ni institucional de las personas responsables.
 
-## 2. Principios
+---
 
-- privacidad por diseño;
-- minimización de datos;
-- trazabilidad;
-- transparencia;
-- supervisión humana;
-- seguridad;
-- proporcionalidad;
-- uso autorizado;
-- reconocimiento explícito de limitaciones.
+## 2. Principios éticos aplicados
 
-## 3. Análisis de sesgos
+El proyecto adopta como principios:
 
-Fuentes potenciales:
+- **Beneficencia:** mejorar el acceso al conocimiento y reducir el tiempo de búsqueda.
+- **No maleficencia:** evitar exposición de información, respuestas incorrectas y usos fuera de propósito.
+- **Autonomía:** mantener la decisión final en el usuario y en la cadena institucional competente.
+- **Justicia/Fairness:** evitar que áreas o categorías con menor cobertura documental reciban sistemáticamente peor servicio.
+- **Explicabilidad:** mostrar fuentes, fragmentos, fecha, versión y estado de la evidencia recuperada.
+- **Privacidad y confidencialidad:** tratar únicamente información autorizada y aplicar controles de acceso acordes al rol y necesidad de conocer.
+- **Accountability:** definir responsables, auditoría, monitoreo, reporte, apelación y respuesta a incidentes.
 
-- proyectos más documentados que otros;
-- áreas técnicas con mayor volumen de información;
-- terminología institucional específica;
-- documentos históricos desactualizados;
-- predominio de determinadas categorías;
-- QA producido por un grupo reducido de personas.
+---
 
-Impactos posibles:
+## 3. Stakeholders
 
-- mejor desempeño en áreas sobrerrepresentadas;
-- menor calidad en temas con poca evidencia;
-- preferencia por terminología frecuente;
-- mayor error en categorías con pocos ejemplos.
+Se identifican los siguientes grupos:
 
-El principal riesgo no es un sesgo demográfico clásico, sino un **sesgo de cobertura del conocimiento**.
+| Stakeholder | Beneficios | Riesgos principales | Poder/Voz |
+|---|---|---|---|
+| Usuarios directos de DINDES | Ahorro de tiempo, acceso centralizado, trazabilidad | Sobreconfianza, respuestas incompletas | Alto |
+| Especialistas y responsables de proyectos | Reutilización de antecedentes y continuidad | Descontextualización, uso de versiones antiguas | Alto |
+| Custodios/administradores de información y TI | Organización y monitoreo | Mayor carga de gobierno y seguridad | Alto |
+| Dirección y tomadores de decisión | Mayor disponibilidad de antecedentes | Uso indebido como sustituto del análisis formal | Alto |
+| Personal nuevo o con menor experiencia | Menor dependencia del conocimiento tácito | Mayor vulnerabilidad a sobreconfianza | Medio |
+| Organización y beneficiarios indirectos | Continuidad institucional y eficiencia | Riesgo reputacional o de seguridad | Medio |
 
-## 4. Equidad y fairness
+---
 
-Se deberá comparar desempeño entre:
+## 4. Impactos sociales positivos
 
-- categorías de consulta;
-- tipos de documento;
-- proyectos;
-- áreas técnicas.
+### 4.1 Reducción del tiempo de búsqueda
 
-Métricas propuestas:
+El sistema puede recuperar evidencia desde múltiples fuentes y priorizar resultados. La meta inicial del proyecto es reducir el tiempo de búsqueda al menos en un 50 %, sujeto a validación experimental.
 
-- Precision@K por categoría;
-- Recall@K por categoría;
-- tasa de respuestas sustentadas;
-- tasa de abstención;
-- latencia por tipo de consulta.
+### 4.2 Preservación y transferencia de conocimiento
 
-Mitigaciones:
+El RAG permite reutilizar antecedentes documentados sin entrenar nuevamente el LLM, reduciendo dependencia del conocimiento tácito.
 
-- ampliar cobertura documental;
-- balancear QA;
-- evaluar por subgrupos;
-- no reportar únicamente métricas globales.
+### 4.3 Mayor trazabilidad
 
-## 5. Privacidad
+Las respuestas deberán vincularse con documentos, secciones, versiones y estado de la fuente, facilitando verificación humana y auditoría.
 
-El repositorio público actual utiliza datasets sintéticos.
+### 4.4 Uso más eficiente de recursos
 
-Una implementación real podría contener nombres, cargos, documentos internos, información técnica y metadatos institucionales.
+Se reduce la repetición de búsquedas y la reconstrucción de antecedentes ya existentes.
 
-Medidas previstas:
+---
 
-- procesamiento local/on-premise;
-- no subir documentos reales a GitHub;
-- separar código de datos;
-- mantener secretos en `.env`;
-- aplicar control de acceso;
-- mantener logs mínimos.
+## 5. Impactos negativos y riesgos sociales
 
-La aplicabilidad de regulaciones específicas deberá revisarse antes de un despliegue productivo. El proyecto no afirma cumplimiento automático con GDPR, CCPA u otra regulación.
+| Riesgo | Severidad | Probabilidad | Grupos más expuestos |
+|---|---:|---:|---|
+| Exposición de información institucional | Alta | Media | Custodios, organización, usuarios autorizados |
+| Respuesta incorrecta o no sustentada | Alta | Media | Usuarios, responsables de proyecto, dirección |
+| Uso de información desactualizada | Alta | Media | Especialistas y tomadores de decisión |
+| Sesgo de cobertura documental | Media | Alta | Áreas con menor documentación |
+| Sobreconfianza y pérdida de autonomía crítica | Media | Media | Personal nuevo y usuarios frecuentes |
 
-## 6. Transparencia y explicabilidad
+---
 
-El sistema deberá mostrar:
+## 6. Análisis de equidad
 
-- fuentes recuperadas;
-- fragmentos relevantes;
-- scores de recuperación cuando correspondan;
-- advertencias;
-- limitaciones;
-- mensaje explícito cuando no exista evidencia suficiente.
+La equidad en este proyecto no implica que todos deban acceder a toda la información. Implica:
 
-## 7. Explicabilidad del modelo
+- acceso proporcional al rol y a la necesidad de conocer;
+- calidad de recuperación comparable entre categorías;
+- detección de áreas con baja cobertura documental;
+- capacitación para usuarios con menor experiencia;
+- existencia de mecanismos alternativos de consulta.
 
-Componentes interpretables:
+El sistema puede reducir desigualdad de acceso al conocimiento tácito, pero también puede aumentar desigualdades entre áreas bien y mal documentadas. Por ello se deben medir métricas de recuperación por categoría y no solo de manera global.
 
-- BM25;
-- scores de similitud;
-- features explícitas;
-- fuentes visibles.
+---
 
-Si se utilizan modelos auxiliares más complejos, podrán evaluarse SHAP, LIME o permutation feature importance cuando sean apropiados.
+## 7. Riesgos éticos prioritarios
 
-## 8. Impacto social y organizacional
+### R1. Privacidad y confidencialidad
 
-Impactos positivos:
+**Descripción:** indexación, logging o presentación de información a personas no autorizadas.  
+**Severidad:** Alta.  
+**Mitigación:** corpus autorizado, filtros por rol antes del retrieval, cifrado, logs mínimos y auditoría.
 
-- reducción del tiempo de búsqueda;
-- mejor acceso al conocimiento;
-- trazabilidad;
-- apoyo al personal nuevo;
-- menor dependencia de conocimiento tácito.
+### R2. Respuestas no sustentadas / alucinación
 
-Impactos negativos posibles:
+**Descripción:** el modelo generativo puede producir texto plausible cuando la evidencia es débil o insuficiente.  
+**Severidad:** Alta.  
+**Mitigación:** grounding, umbral de relevancia, Top-K controlado, abstención y fuentes visibles.
 
-- exceso de confianza;
-- uso de respuestas fuera de contexto;
-- interpretación incorrecta;
-- dependencia excesiva;
-- exposición accidental de información;
-- uso de información desactualizada.
+### R3. Sesgo de cobertura y fairness
 
-## 9. Responsabilidad
+**Descripción:** áreas con menos documentación o lenguaje distinto pueden obtener peor recuperación.  
+**Severidad:** Media.  
+**Mitigación:** métricas por categoría, ampliación del corpus y QA, reevaluación periódica.
 
-El asistente es una herramienta de apoyo.
+### R4. Falta de transparencia / explicabilidad
 
-La responsabilidad final sobre decisiones técnicas, administrativas u operativas corresponde a las personas y autoridades competentes.
+**Descripción:** el usuario puede confundir evidencia recuperada con texto generado o desconocer la vigencia de una fuente.  
+**Severidad:** Alta.  
+**Mitigación:** panel de evidencias con fuente, fragmento, fecha, versión y estado.
 
-Cuando exista un error, debe ser posible analizar:
+### R5. Pérdida de autonomía y sobreconfianza
 
-```text
-Consulta
-→ recuperación
-→ fuentes
-→ prompt
-→ respuesta
-→ versión del sistema
-```
+**Descripción:** el asistente podría pasar de herramienta de apoyo a sustituto del juicio experto.  
+**Severidad:** Media.  
+**Mitigación:** human-in-the-loop, advertencias visibles, capacitación y reglas de uso.
 
-## 10. Supervisión humana
+### R6. Seguridad y uso indebido
 
-Se mantendrá un enfoque **human-in-the-loop**.
+**Descripción:** un usuario legítimo o una cuenta comprometida podría intentar extraer información masivamente o consultar fuera de su necesidad funcional.  
+**Severidad:** Alta.  
+**Mitigación:** autenticación, autorización, límites de consulta, monitoreo, pruebas de abuso y respuesta a incidentes.
 
-El usuario deberá revisar fuentes, validar información crítica y consultar documentación original cuando corresponda.
+---
 
-## 11. Uso dual y mal uso
+## 8. Decisiones de diseño derivadas del análisis ético
 
-Riesgos:
+Se incorporan como requisitos del MVP:
 
-- consultas fuera del ámbito autorizado;
-- inferencia de información sensible;
-- automatización de decisiones no previstas;
-- extracción masiva de información.
+1. **Filtros de autorización antes del retrieval.**
+2. **Abstención automática ante evidencia insuficiente.**
+3. **Visualización de fuente, fragmento, fecha, versión y estado.**
+4. **Métricas de recuperación por categoría.**
+5. **Logging mínimo y orientado a auditoría.**
+6. **Mecanismo para reportar respuestas incorrectas o fuentes inapropiadas.**
+7. **Proceso de apelación y escalamiento.**
+8. **Supervisión humana en decisiones críticas.**
+
+---
+
+## 9. Uso dual y mal uso
+
+El sistema podría ser mal utilizado para:
+
+- extraer información fuera del propósito autorizado;
+- automatizar decisiones no previstas;
+- compartir respuestas con usuarios no autorizados;
+- realizar consultas masivas;
+- inferir información sensible a partir de múltiples fuentes.
 
 Salvaguardas:
 
-- control de acceso;
-- filtrado por permisos;
-- ejecución local;
-- logs de auditoría;
+- control por roles;
 - límites de consulta;
-- exclusión de documentos no autorizados.
+- auditoría;
+- separación de corpus;
+- revocación de acceso;
+- políticas de uso;
+- respuesta a incidentes.
 
-## 12. Limitaciones reconocidas
+---
+
+## 10. Limitaciones reconocidas
 
 El sistema no debe utilizarse como única fuente en:
 
 - decisiones operativas críticas;
-- decisiones de seguridad;
 - decisiones administrativas vinculantes;
-- evaluación formal de personas;
-- situaciones con fuentes incompletas;
-- consultas fuera del corpus autorizado.
+- situaciones donde las fuentes estén incompletas o desactualizadas;
+- consultas fuera del corpus autorizado;
+- casos donde no exista evidencia suficiente.
 
-## 13. Alucinaciones
+---
 
-Los modelos generativos pueden producir información incorrecta.
+## 11. Advertencia para usuarios
 
-Mitigaciones:
+> **Aviso:** Este asistente es una herramienta de apoyo. Las respuestas dependen de las fuentes disponibles y pueden contener errores. Revise la documentación original antes de utilizar la información en decisiones técnicas, administrativas u operativas.
 
-- RAG;
-- fuentes visibles;
-- grounding;
-- umbrales de relevancia;
-- abstención;
-- evaluación QA;
-- validación humana.
+---
 
-Comportamiento esperado:
+## 12. Compromiso ético del equipo
 
-> No se encontró evidencia suficiente en las fuentes disponibles para responder esta consulta.
+El equipo se compromete a:
 
-## 14. Información desactualizada
+- evaluar periódicamente la calidad de recuperación y la tasa de respuestas sustentadas;
+- no publicar información institucional real sin autorización;
+- implementar abstención, trazabilidad y supervisión humana;
+- actuar ante daños, accesos indebidos o errores recurrentes;
+- mejorar la cobertura de áreas menos representadas;
+- mantener transparencia sobre capacidades, limitaciones y cambios del sistema.
 
-El índice deberá conservar fecha, versión, estado de fuente y unidad responsable.
+---
 
-Se priorizarán fuentes vigentes y se alertará cuando una fuente sea borrador o histórica.
+## 13. Documentos relacionados
 
-## 15. Seguridad del repositorio público
-
-Nunca se publicarán:
-
-- credenciales;
-- tokens;
-- claves privadas;
-- documentos institucionales reales no autorizados;
-- bases vectoriales derivadas de información sensible;
-- logs con información restringida.
-
-## 16. Monitoreo
-
-Se recomienda monitorear:
-
-- calidad de retrieval;
-- Grounded Response Rate;
-- consultas sin respuesta;
-- falsos positivos;
-- latencia;
-- errores;
-- categorías con bajo desempeño;
-- uso anómalo.
-
-## 17. Actualización
-
-El sistema requerirá revisión periódica del corpus, eliminación de versiones obsoletas, reindexación, actualización del QA set y reevaluación de métricas.
-
-## 18. Advertencia para usuarios
-
-> **Aviso:** Este asistente es una herramienta de apoyo. Las respuestas se generan a partir de las fuentes disponibles y pueden contener errores. Verifique la documentación original antes de utilizar la información en decisiones técnicas, administrativas u operativas.
-
-## 19. Estado de mitigaciones
-
-| Riesgo | Mitigación | Estado |
-|---|---|---|
-| Exposición de información real en GitHub | Solo samples sintéticos | Implementado |
-| Data leakage experimental | Split por `qa_id` | Implementado |
-| Respuestas no sustentadas | RAG + fuentes | En desarrollo |
-| Exceso de confianza | Advertencias + fuentes | En desarrollo |
-| Acceso no autorizado | Autenticación/permisos | Pendiente |
-| Datos obsoletos | Metadatos/versionamiento | En diseño |
-| Alucinación | Grounding + abstención | En desarrollo |
-| Sesgo de cobertura | Evaluación por categoría | Planificado |
-
-## 20. Conclusión
-
-El objetivo ético principal es que la IA facilite el acceso al conocimiento sin ocultar incertidumbre, sin sustituir responsabilidad humana y sin comprometer información institucional.
+- `docs/gobernanza_responsabilidad.md`
+- `docs/compliance.md`
+- `docs/arquitectura.md`
+- `docs/manual_usuario.md`
