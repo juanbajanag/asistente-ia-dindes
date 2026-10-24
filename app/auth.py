@@ -137,6 +137,9 @@ def login_form() -> bool:
             user = authenticate(username, password)
 
             if user:
+                # Inicia una sesión limpia: elimina consultas, respuestas,
+                # widgets y otros estados temporales de una sesión previa.
+                st.session_state.clear()
                 st.session_state.authenticated = True
                 st.session_state.user = user
                 st.rerun()
@@ -148,8 +151,10 @@ def login_form() -> bool:
 
 def logout_button() -> None:
     if st.button("Cerrar sesión", use_container_width=True):
-        st.session_state.authenticated = False
-        st.session_state.user = None
+        # Limpia todo el estado temporal de Streamlit para impedir que
+        # consultas, respuestas, feedback o widgets de la sesión anterior
+        # reaparezcan al volver a autenticarse en la misma pestaña.
+        st.session_state.clear()
         st.rerun()
 
 

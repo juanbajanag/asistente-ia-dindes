@@ -123,32 +123,53 @@ class RAGPipeline:
         )
 
         if structured is not None:
-            sources = (
-                self.structured_engine
-                .to_retrieval_results(
-                    structured["records"]
+            query = structured.get("query")
+            records = list(
+                structured.get("records", [])
+            )
+
+            has_entity_filter = bool(
+                getattr(query, "brand", None)
+                or getattr(query, "model", None)
+                or getattr(
+                    query,
+                    "description_contains",
+                    None,
                 )
             )
 
-            return RAGResponse(
-                question=question,
-                answer=structured["answer"],
-                abstained=bool(
-                    structured["abstained"]
-                ),
-                sources=sources,
-                retrieval_count=len(sources),
-                abstention_stage=(
-                    "structured"
-                    if structured["abstained"]
-                    else None
-                ),
-                response_mode="structured",
-                structured_rows=structured.get(
-                    "structured_rows",
-                    [],
-                ),
+            # Si la consulta pide una entidad concreta pero no existe
+            # entre los registros estructurados, continuar por RAG.
+            fallback_to_rag = (
+                has_entity_filter
+                and not records
             )
+
+            if not fallback_to_rag:
+                sources = (
+                    self.structured_engine
+                    .to_retrieval_results(records)
+                )
+
+                return RAGResponse(
+                    question=question,
+                    answer=structured["answer"],
+                    abstained=bool(
+                        structured["abstained"]
+                    ),
+                    sources=sources,
+                    retrieval_count=len(sources),
+                    abstention_stage=(
+                        "structured"
+                        if structured["abstained"]
+                        else None
+                    ),
+                    response_mode="structured",
+                    structured_rows=structured.get(
+                        "structured_rows",
+                        [],
+                    ),
+                )
 
         # ----------------------------------------------------------
         # Ruta RAG

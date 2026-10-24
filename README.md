@@ -9,9 +9,9 @@
 
 Proyecto académico del curso **Proyecto Integrador en Inteligencia Artificial (MIAR0545)** de la Universidad de Especialidades Espíritu Santo (UEES).
 
-El sistema implementa un asistente basado en **RAG (Retrieval-Augmented Generation)** para recuperar conocimiento técnico, responder consultas con evidencia visible, consultar inventario estructurado y abstenerse cuando no existe evidencia suficiente. La arquitectura principal se diseñó para operación local/on-premise y se creó además una **versión cloud académica** en Streamlit Community Cloud para permitir evaluación remota con datos sintéticos o autorizados.
+El sistema implementa un asistente basado en **RAG (Retrieval-Augmented Generation)** para recuperar conocimiento técnico, responder consultas con evidencia visible, consultar inventario estructurado y abstenerse cuando no existe evidencia suficiente. La arquitectura principal se diseñó para operación local/on-premise y se creó además una **versión cloud académica** para permitir evaluación remota con datos sintéticos o autorizados.
 
-> **Aplicación pública:** [https://asistente-ia-dindes.streamlit.app/]
+> 🌐 **Aplicación pública:** [Abrir Asistente IA DINDES](https://asistente-ia-dindes.streamlit.app/)
 
 ---
 
@@ -41,7 +41,7 @@ DINDES gestiona documentación técnica, antecedentes de proyectos, inventarios 
 
 El proyecto busca reducir ese problema mediante recuperación de información, consultas estructuradas y generación asistida con evidencia.
 
-### ¿Por qué es importante?
+### Importancia
 
 - Reduce tiempo de búsqueda de antecedentes.
 - Facilita reutilización del conocimiento técnico.
@@ -53,13 +53,7 @@ El proyecto busca reducir ese problema mediante recuperación de información, c
 
 ## Usuarios objetivo
 
-El MVP está dirigido principalmente a:
-
-- personal técnico y administrativo autorizado;
-- responsables de proyectos;
-- analistas y especialistas;
-- administradores del conocimiento;
-- personal que requiera consultar inventario o antecedentes técnicos.
+El MVP está dirigido principalmente a personal técnico y administrativo autorizado, responsables de proyectos, analistas, especialistas y administradores del conocimiento.
 
 La aplicación es una **herramienta de apoyo** y no sustituye decisiones técnicas, administrativas u operativas.
 
@@ -67,7 +61,7 @@ La aplicación es una **herramienta de apoyo** y no sustituye decisiones técnic
 
 ## Datos
 
-El repositorio público utiliza datasets **sintéticos y académicos**, empleados para demostrar el funcionamiento sin publicar información institucional sensible.
+El repositorio público utiliza datasets **sintéticos y académicos**.
 
 | Dataset | Propósito |
 |---|---|
@@ -75,11 +69,7 @@ El repositorio público utiliza datasets **sintéticos y académicos**, empleado
 | `Dataset_2_Inventario_Institucional_DINDES_Sample.csv` | Inventario sample |
 | `Dataset_3_Evaluacion_QA_Asistente_IA_Sample.csv` | Preguntas y respuestas de evaluación |
 
-La descripción ampliada se encuentra en [`data/README.md`](data/README.md) y [`docs/analisis_datos.md`](docs/analisis_datos.md).
-
-### Fuente y licencia
-
-Los datos publicados forman parte del material sintético elaborado para el proyecto académico. No corresponden a un dataset público de terceros. El código se publica bajo licencia MIT; los datos sample se incluyen únicamente para fines académicos y demostrativos.
+Más detalle: [`data/README.md`](data/README.md).
 
 ---
 
@@ -87,52 +77,38 @@ Los datos publicados forman parte del material sintético elaborado para el proy
 
 El proyecto no realiza fine-tuning del LLM con documentación institucional. Se utiliza una arquitectura RAG:
 
-1. carga y normalización de datos;
+1. carga y normalización;
 2. segmentación y metadatos;
-3. recuperación léxica/semántica;
+3. recuperación;
 4. selección de evidencia;
 5. respuesta con citas;
-6. abstención si no se supera la política de evidencia.
+6. abstención cuando no existe evidencia suficiente.
 
-Además existe una ruta **estructurada determinística** para inventario tabular.
-
-Para estudiar overfitting/underfitting se utilizó un clasificador auxiliar pregunta-documento. La metodología y sus limitaciones se documentan en [`docs/optimizacion.md`](docs/optimizacion.md).
+Para inventario tabular existe una ruta **estructurada determinística**.
 
 ---
 
 ## Arquitectura
 
 ```text
-                         ┌──────────────────────────┐
-                         │      Pregunta usuario     │
-                         └─────────────┬────────────┘
-                                       ↓
-                         ┌──────────────────────────┐
-                         │ Enrutamiento de consulta │
-                         └───────┬──────────┬───────┘
-                                 │          │
-                    estructurada │          │ documental
-                                 ↓          ↓
-                     Motor tabular       Retrieval
-                                 │          │
-                                 │       Top-K / evidencia
-                                 │          │
-                                 └────┬─────┘
-                                      ↓
-                              Respuesta + fuentes
-                                      ↓
-                                 Streamlit UI
+Pregunta
+   ↓
+Enrutamiento
+   ├── Estructurado → motor tabular
+   └── Documental → retrieval → evidencia
+                         ↓
+                  Respuesta + fuentes
+                         ↓
+                    Streamlit UI
 ```
 
-La versión local puede integrar el modelo generativo local. La versión cloud utiliza un backend ligero y reproducible para evaluación remota, evitando depender de Ollama o de pesos locales no disponibles en Streamlit Community Cloud.
-
-Más detalle: [`docs/arquitectura.md`](docs/arquitectura.md).
+La versión cloud utiliza un backend ligero y reproducible que no depende de Ollama ni de pesos locales.
 
 ---
 
 ## Resultados
 
-### Clasificador auxiliar de relevancia
+### Clasificador auxiliar
 
 | Modelo | Accuracy | Precision | Recall | F1 |
 |---|---:|---:|---:|---:|
@@ -140,39 +116,24 @@ Más detalle: [`docs/arquitectura.md`](docs/arquitectura.md).
 | Balanceo de clases | 0.5000 | 0.0000 | 0.0000 | 0.0000 |
 | Feature Engineering | 0.8125 | 0.4000 | 1.0000 | 0.5714 |
 
-El conjunto de validación contiene únicamente dos positivos; por ello estas métricas son demostrativas y no deben interpretarse como desempeño operacional.
+![Comparación F1](results/figures/comparacion_f1.png)
 
-### Validación funcional del MVP
+La validación contiene únicamente dos positivos; por ello estas métricas son demostrativas y no deben interpretarse como desempeño operacional.
 
-Se verificaron cuatro comportamientos de extremo a extremo:
+### Validación funcional
 
-| Caso | Resultado esperado |
+| Caso | Resultado |
 |---|---|
-| Consulta tabular de inventario | Respuesta estructurada determinística |
-| Consulta cuantitativa sample | Respuesta RAG con cantidad explícita |
-| Consulta documental | Recuperación y respuesta con fuente |
-| Consulta sin evidencia | Abstención en retrieval |
+| DEWALT DWD024-B3 | Estructurado; stock = 1 |
+| Creality K1 | RAG cuantitativo; cantidad = 1 |
+| Simulador Táctico Submarino | RAG documental |
+| Fragata inexistente | Abstención en retrieval |
 
-Ejemplos usados en la validación:
-
-```text
-¿Cuál es el stock del taladro DEWALT modelo DWD024-B3?
-¿Cuántas impresoras 3D Creality K1 están disponibles?
-¿Qué componentes principales integra la arquitectura del Simulador Táctico Submarino?
-¿Cuál es el número de serie del generador principal de la fragata inexistente?
-```
+Las métricas exportadas están en [`results/metrics/metricas_finales.csv`](results/metrics/metricas_finales.csv) y el resumen en [`results/reports/resumen_evaluacion.md`](results/reports/resumen_evaluacion.md).
 
 ---
 
 ## Instalación y ejecución
-
-### Requisitos
-
-- Python 3.14.x validado en el entorno de desarrollo
-- Windows 10/11 para la configuración local utilizada durante el proyecto
-- Dependencias de `requirements.txt`
-
-### Instalación
 
 ```powershell
 py -m venv .venv
@@ -180,10 +141,9 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
 pip install -r requirements.txt
-python verificar_entorno.py
 ```
 
-### Aplicación local principal
+### Aplicación local
 
 ```powershell
 streamlit run app/app.py
@@ -195,41 +155,41 @@ streamlit run app/app.py
 streamlit run streamlit_app.py
 ```
 
-`streamlit_app.py` activa el runtime cloud y ejecuta la interfaz existente desde `app/app.py`.
-
-### Pruebas
+### Tests
 
 ```powershell
 python -m unittest discover -s tests -p "test_*.py" -v
 ```
 
-### Verificación de estructura final
-
-```powershell
-python scripts/check_final_repository.py
-```
+La suite validada ejecutó **13 pruebas con resultado OK**.
 
 ---
 
 ## Interfaz de usuario
 
-La interfaz incluye:
+La interfaz incluye autenticación, roles, consultas, fuentes, abstención, inventario, historial, auditoría, documentos, evaluación y herramientas de priorización.
 
-- autenticación y roles;
-- consulta en lenguaje natural;
-- ejemplos precargados;
-- respuestas con evidencia;
-- abstención explícita;
-- consulta estructurada de inventario;
-- dashboard y filtros;
-- descarga CSV;
-- historial y auditoría;
-- evaluación de respuestas;
-- administración de criticidad y reposición, según permisos.
+### Capturas
 
-La app muestra advertencias de uso y mantiene la decisión final bajo responsabilidad humana.
+#### Pantalla principal
 
-> Antes de entregar, agregue aquí 2–4 capturas finales o enlaces a imágenes del repositorio.
+![Interfaz principal](docs/images/01_interfaz_principal.png)
+
+#### Consulta estructurada
+
+![Consulta estructurada](docs/images/02_consulta_estructurada_dewalt.png)
+
+#### Consulta cuantitativa
+
+![Consulta cuantitativa](docs/images/03_consulta_cuantitativa_creality.png)
+
+#### Consulta documental RAG
+
+![Consulta RAG](docs/images/04_consulta_rag_simulador.png)
+
+#### Abstención responsable
+
+![Abstención](docs/images/05_abstencion_sin_evidencia.png)
 
 ---
 
@@ -239,31 +199,16 @@ La app muestra advertencias de uso y mantiene la decisión final bajo responsabi
 asistente-ia-dindes/
 ├── README.md
 ├── requirements.txt
-├── .gitignore
 ├── LICENSE
 ├── streamlit_app.py
 ├── docs/
 ├── data/
-│   ├── raw/
-│   ├── processed/
-│   └── README.md
 ├── notebooks/
-│   ├── 01_exploracion.ipynb
-│   ├── 02_preprocesamiento.ipynb
-│   ├── 03_modelado.ipynb
-│   ├── 04_optimizacion.ipynb
-│   └── 05_evaluacion.ipynb
 ├── src/
 ├── models/
-│   └── README.md
 ├── app/
-│   ├── app.py
-│   └── requirements.txt
 ├── tests/
 └── results/
-    ├── figures/
-    ├── metrics/
-    └── reports/
 ```
 
 ---
@@ -276,40 +221,37 @@ El sistema incorpora:
 - trazabilidad de fuentes;
 - revisión humana;
 - control de acceso;
-- separación entre datos públicos de demostración y datos institucionales;
-- advertencias contra sobreconfianza;
-- auditoría y mecanismos de reporte;
+- separación entre datos públicos y datos institucionales;
+- auditoría;
 - análisis de privacidad, fairness, transparencia, impacto y uso dual.
 
-Documentación: [`docs/consideraciones_eticas.md`](docs/consideraciones_eticas.md).
+Más detalle: [`docs/consideraciones_eticas.md`](docs/consideraciones_eticas.md).
 
 ---
 
 ## Limitaciones
 
-- Los datasets publicados son pequeños y sintéticos.
+- Los datasets públicos son pequeños y sintéticos.
 - Las métricas académicas no representan desempeño operacional.
 - La calidad depende de cobertura y vigencia del corpus.
 - La versión cloud no replica todo el costo computacional del runtime local.
-- Una respuesta con evidencia debe ser verificada antes de decisiones relevantes.
-- La aplicación no debe utilizarse como sistema autónomo de decisión.
+- La decisión final permanece bajo responsabilidad humana.
 
 ---
 
 ## Autores y contribuciones
 
 ### Juan Carlos Bajaña Gutiérrez
-- arquitectura y desarrollo del MVP;
-- integración RAG e inventario;
-- interfaz y despliegue;
-- evaluación y documentación.
+- arquitectura e integración del MVP;
+- RAG e inventario;
+- interfaz y despliegue cloud;
+- evaluación técnica y documentación.
 
 ### José Luis Peñafiel Fernández
 - análisis y desarrollo del proyecto integrador;
 - revisión metodológica;
-- documentación y evaluación académica.
-
-Las contribuciones pueden ajustarse antes de la entrega final para reflejar con exactitud la distribución real del trabajo.
+- documentación;
+- evaluación académica.
 
 ---
 
@@ -321,23 +263,18 @@ Código publicado bajo **MIT License**. Consulte [`LICENSE`](LICENSE).
 
 ## Referencias
 
-- Streamlit
-- Scikit-learn
-- Pandas
-- NumPy
-- Matplotlib
-- Qwen
-- documentación técnica citada en los informes del proyecto
-
-Las referencias académicas detalladas se mantienen en los documentos e informes del proyecto.
+- Lewis, P. et al. (2020). *Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks*. NeurIPS.
+- Pedregosa, F. et al. (2011). *Scikit-learn: Machine Learning in Python*. Journal of Machine Learning Research.
+- Streamlit. *Streamlit Documentation*.
+- Qwen Team. *Qwen documentation and technical resources*.
+- McKinney, W. (2010). *Data Structures for Statistical Computing in Python*.
+- Harris, C. R. et al. (2020). *Array programming with NumPy*. Nature.
 
 ---
 
 ## Videos
 
-Los dos videos son obligatorios para la entrega final.
+- **Video pitch (máximo 5 minutos):** pendiente de incorporar enlace.
+- **Video de respuestas a preguntas:** pendiente de incorporar enlace.
 
-- **Video pitch (máximo 5 minutos):** agregar enlace final.
-- **Video de respuestas a preguntas:** agregar enlace final.
-
-Antes de entregar, sustituya estos textos por enlaces accesibles para la docente.
+Los enlaces se incorporarán en el commit final de entrega.
