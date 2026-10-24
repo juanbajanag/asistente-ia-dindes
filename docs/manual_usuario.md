@@ -2,198 +2,168 @@
 
 ## 1. Propósito
 
-Este manual describe el uso previsto de la aplicación web del **Asistente IA DINDES**.
+Este manual describe el uso de la aplicación **Asistente IA DINDES**, implementada en Streamlit.
 
-> **Estado actual:** la interfaz final todavía está en desarrollo. Este documento será actualizado con capturas reales cuando `app/app.py` esté implementado.
+El sistema es una herramienta de apoyo para consulta, recuperación y gestión del conocimiento. **Informa y apoya; no decide.**
 
----
+## 2. Versiones disponibles
 
-## 2. Principio de uso
+### Versión local/on-premise
 
-El asistente **informa y apoya; no decide**.
-
-Las respuestas deben considerarse un punto de partida para consultar antecedentes y no un sustituto de la documentación oficial ni del criterio técnico.
-
----
-
-## 3. Iniciar la aplicación
-
-Desde la raíz del proyecto:
+Ejecuta la aplicación principal desde:
 
 ```powershell
-.\.venv\Scripts\Activate.ps1
 streamlit run app/app.py
 ```
 
-URL prevista:
+Puede utilizar el runtime local y, cuando esté disponible, modelos instalados en el equipo.
 
-```text
-http://localhost:8501
+### Versión cloud académica
+
+Se creó una versión específica para evaluación remota en Streamlit Community Cloud:
+
+```powershell
+streamlit run streamlit_app.py
 ```
 
----
+El entrypoint cloud activa un backend ligero que no depende de Ollama ni de pesos locales. Está destinado a demostración con datos sintéticos/autorizados.
 
-## 4. Realizar una consulta
+## 3. Acceso
 
-1. Ingresar una pregunta específica.
-2. Presionar **Consultar**.
-3. Esperar el proceso de retrieval, reranking y generación.
-4. Revisar la respuesta.
-5. Revisar las fuentes y evidencias antes de utilizar la información.
+La aplicación incorpora autenticación y permisos por rol. Las credenciales no deben almacenarse en el repositorio; deben configurarse mediante secretos de Streamlit o mecanismos equivalentes.
 
----
+## 4. Consulta general
 
-## 5. Evidencias que debe mostrar la interfaz
+1. Ingrese al sistema.
+2. Abra la pestaña **Consulta**.
+3. Seleccione un ejemplo o escriba una pregunta.
+4. Presione **Consultar**.
+5. Revise la respuesta.
+6. Revise siempre **Fuentes y evidencias**.
 
-Cuando estén disponibles:
+## 5. Modos de respuesta
 
-- título de la fuente;
-- sección;
-- fragmento relevante;
-- fecha;
-- versión;
-- estado;
-- score de relevancia.
+### Estructurado
 
----
+Se utiliza para consultas tabulares determinísticas, por ejemplo:
 
-## 6. Cuando no existe evidencia suficiente
+```text
+¿Cuál es el stock del taladro DEWALT modelo DWD024-B3?
+```
 
-El sistema debe abstenerse.
+El resultado se obtiene directamente de registros estructurados y puede mostrarse en tabla.
 
-Mensaje esperado:
+### RAG
 
-> **No se encontró evidencia suficiente en las fuentes disponibles para responder esta consulta.**
+Se utiliza cuando la consulta requiere recuperación documental o semántica.
 
-El usuario no debe interpretar una abstención como error: es un mecanismo de seguridad.
+Ejemplo:
 
----
+```text
+¿Qué componentes principales integra la arquitectura del Simulador Táctico Submarino?
+```
 
-## 7. Verificación humana
+La respuesta incorpora referencias `[F1]`, `[F2]`, etc.
 
-Antes de utilizar una respuesta en una decisión importante:
+### Abstención
 
-- revisar la fuente original;
-- confirmar vigencia y versión;
-- verificar que el documento corresponde al contexto;
-- consultar a un especialista cuando sea necesario.
+Cuando no existe evidencia suficiente, el sistema debe indicar explícitamente que no puede responder.
 
----
+Ejemplo:
 
-## 8. Reportar una respuesta o fuente
+```text
+¿Cuál es el número de serie del generador principal de la fragata inexistente?
+```
 
-La interfaz final deberá incorporar un mecanismo de reporte.
+La abstención no es un error; es un control de seguridad.
 
-Casos:
+## 6. Inventario
 
-- respuesta incorrecta;
-- respuesta incompleta;
-- fuente no apropiada;
-- fuente desactualizada;
-- posible acceso indebido;
-- comportamiento inesperado.
+La pestaña **Inventario** permite:
+- visualizar indicadores;
+- filtrar registros;
+- buscar por descripción, marca, modelo o ítem;
+- revisar criticidad;
+- analizar reposición;
+- exportar resultados cuando corresponde.
 
----
+La criticidad institucional no debe inferirse automáticamente: debe ser definida por personal autorizado.
 
-## 9. Proceso de apelación y escalamiento
+## 7. Historial y auditoría
 
-Si el usuario no está de acuerdo con una respuesta:
+Según el rol, el usuario puede consultar:
+- historial;
+- eventos de auditoría;
+- evaluaciones;
+- trazabilidad de operaciones.
 
-1. reportar la consulta;
-2. solicitar revisión de la fuente;
-3. el caso se registra;
-4. se escala al responsable funcional o custodio de información;
-5. si corresponde, se remite a la autoridad competente;
-6. la resolución se documenta para trazabilidad.
+## 8. Documentos
 
----
+Los usuarios autorizados pueden gestionar documentos conforme a los permisos configurados.
 
-## 10. Buenas prácticas
+## 9. Evaluación de respuestas
 
-- formular preguntas específicas;
-- revisar siempre las fuentes;
-- no ingresar información no autorizada;
-- no utilizar respuestas como única base de decisiones críticas;
-- reportar errores;
-- respetar permisos y necesidad de conocer.
+Después de una consulta, el usuario puede registrar:
+- correcta / útil;
+- incorrecta / incompleta;
+- comentario opcional.
 
----
+Esto permite recopilar evidencia para mejora posterior.
 
-## 11. Seguridad y privacidad
+## 10. Ejemplos recomendados
 
-No ingresar:
+```text
+¿Cuál es el stock del taladro DEWALT modelo DWD024-B3?
 
+¿Cuántas impresoras 3D Creality K1 están disponibles?
+
+¿Qué componentes principales integra la arquitectura del Simulador Táctico Submarino?
+
+¿Cuál es el número de serie del generador principal de la fragata inexistente?
+```
+
+## 11. Verificación humana
+
+Antes de utilizar una respuesta en una decisión relevante:
+1. revise la fuente;
+2. confirme vigencia y versión;
+3. confirme que el contexto corresponde al caso;
+4. consulte al especialista responsable cuando aplique.
+
+## 12. Troubleshooting
+
+| Problema | Acción |
+|---|---|
+| `ModuleNotFoundError` | `pip install -r requirements.txt` |
+| Streamlit no inicia | verificar `.venv` y ejecutar `python -m streamlit run app/app.py` |
+| No abre navegador automáticamente | abrir manualmente `http://localhost:8501` |
+| No hay evidencia | reformular o verificar que la fuente exista |
+| Abstención | comportamiento esperado si no hay evidencia suficiente |
+| Error cloud | revisar logs de Streamlit y dependencias públicas |
+| Login falla | revisar configuración de secretos/usuarios |
+
+## 13. Seguridad
+
+No ingrese ni publique:
 - contraseñas;
 - tokens;
 - claves;
 - información clasificada no autorizada;
 - datos personales innecesarios.
 
-El acceso a información depende del rol del usuario.
+## 14. Limitaciones
 
----
+- El corpus público es sintético y pequeño.
+- La versión cloud está optimizada para demostración.
+- El sistema puede recuperar evidencia parcial.
+- Una respuesta no sustituye revisión humana.
+- Las métricas académicas no equivalen a desempeño operacional.
 
-## 12. Limitaciones
+## 15. Soporte académico
 
-El MVP:
-
-- trabaja con un corpus limitado;
-- puede no responder fuera del corpus;
-- puede recuperar fuentes incorrectas;
-- puede usar información desactualizada si el corpus no se mantiene;
-- puede producir errores de generación;
-- no sustituye especialistas.
-
----
-
-## 13. Troubleshooting
-
-| Problema | Acción |
-|---|---|
-| `ModuleNotFoundError` | Ejecutar `pip install -r requirements.txt` |
-| Streamlit no reconocido | Instalar Streamlit dentro de `.venv` |
-| Modelo no carga | Revisar configuración y memoria |
-| Índice vacío | Ejecutar pipeline de ingesta |
-| Respuesta sin fuentes | No utilizarla; revisar retrieval |
-| Fuente desactualizada | Reportar y solicitar revisión |
-| Acceso denegado | Verificar permisos con el administrador |
-
----
-
-## 14. FAQ
-
-### ¿El asistente toma decisiones?
-No. Proporciona información y evidencia para apoyar al usuario.
-
-### ¿Puede equivocarse?
-Sí. Por eso las fuentes deben revisarse.
-
-### ¿Qué ocurre si no existe suficiente información?
-Debe abstenerse.
-
-### ¿Todos los usuarios ven los mismos documentos?
-No necesariamente. El acceso debe depender del rol y de la necesidad de conocer.
-
-### ¿Puedo cuestionar una respuesta?
-Sí. El diseño contempla reporte, apelación y escalamiento.
-
-### ¿Puede usarse información real en GitHub?
-No, salvo que exista autorización expresa y sea apropiado publicarla.
-
----
-
-## 15. Advertencia visible recomendada
-
-> **Aviso:** Este asistente es una herramienta de apoyo. Las respuestas dependen del corpus disponible y pueden contener errores o información desactualizada. Verifique las fuentes originales antes de utilizar la información en decisiones técnicas, administrativas u operativas.
-
----
-
-## 16. Pendientes antes de la entrega final
-
-- implementar `app/app.py`;
-- validar comandos reales;
-- agregar capturas anotadas;
-- documentar autenticación y permisos;
-- implementar botón de reporte;
-- incorporar ejemplos reales de abstención;
-- actualizar métricas finales.
+Para reproducción técnica consulte:
+- `README.md`
+- `docs/arquitectura.md`
+- `docs/analisis_datos.md`
+- `docs/optimizacion.md`
+- `docs/consideraciones_eticas.md`

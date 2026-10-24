@@ -1,0 +1,3 @@
+# Dependencias de la interfaz.
+# Se reutiliza el entorno reproducible definido en la raíz.
+-r ../requirements.txt

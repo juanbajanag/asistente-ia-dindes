@@ -1,103 +1,82 @@
 # Optimización del sistema
 
-## 1. Propósito
+## 1. Alcance
 
-Este documento registra el proceso de optimización del proyecto **Asistente de IA para Innovación, Desarrollo y Gestión del Conocimiento Técnico — DINDES**.
+La optimización se adaptó a la naturaleza del proyecto. El sistema final es RAG y no entrena de extremo a extremo el LLM con documentos institucionales. Por ello se evaluaron:
 
-La optimización se desarrolla de forma progresiva y comprende diagnóstico del comportamiento de modelos auxiliares, análisis de desbalance, selección de features, evaluación de hiperparámetros, comparación antes/después y optimización futura de retrieval, reranking y generación.
+1. un clasificador auxiliar pregunta-documento para diagnosticar generalización;
+2. sensibilidad de hiperparámetros de dicho clasificador;
+3. representación mediante feature engineering;
+4. parámetros de recuperación y políticas de evidencia del RAG;
+5. estabilidad del runtime cloud.
 
-> **Importante:** la actividad de Semana 3 aporta evidencia experimental útil, pero el instructivo final exige además el contenido específico del **Workshop S5**: análisis de sensibilidad, partial dependence plots, ranking de importancia de hiperparámetros, interacciones y configuración final. Esos apartados quedan marcados como **pendientes** hasta contar con resultados reales del Workshop S5.
+## 2. Línea base
 
-## 2. Línea base analizada
-
-Para estudiar overfitting/underfitting se implementó un clasificador auxiliar de relevancia **pregunta-documento**.
+El clasificador auxiliar utiliza:
 
 ```text
 Pregunta + documento
         ↓
 TF-IDF
         ↓
-SGDClassifier (log_loss)
+SGDClassifier(log_loss)
         ↓
 Relevante / No relevante
 ```
 
-## 3. Problema identificado
-
-El dataset de pares pregunta-documento presentó fuerte desbalance:
-
-- 42 pares no relevantes.
-- 6 pares relevantes.
-- 87,5 % clase 0.
+El dataset original de pares presentó:
+- 42 negativos;
+- 6 positivos;
+- 87,5 % clase 0;
 - 12,5 % clase 1.
 
-El modelo base alcanzó una accuracy aparentemente aceptable, pero con `Precision = 0`, `Recall = 0` y `F1 = 0`. Por ello, la accuracy no se utilizó como única métrica.
+## 3. Prevención de leakage
 
-## 4. Control de data leakage
+El split se realiza por `qa_id` **antes** de la aumentación. Solo training se aumenta.
 
-La corrección metodológica principal fue realizar el split por `qa_id` antes de la aumentación:
+Esto evita que variantes de una misma pregunta aparezcan simultáneamente en entrenamiento y validación.
 
-```text
-Pares originales
-      ↓
-Split por qa_id
-   ↙          ↘
-Train       Validation
-   ↓
-Aumentación
-solo Train
-```
+## 4. Métricas
 
-Esto evita que variantes de una misma pregunta aparezcan simultáneamente en training y validation.
+Se analizaron:
+- Training Loss;
+- Validation Loss;
+- Accuracy;
+- Precision;
+- Recall;
+- F1;
+- matriz de confusión;
+- learning curve;
+- validation curve.
 
-## 5. Tracking de métricas
+## 5. Diagnóstico
 
-Durante el entrenamiento se registraron:
+El modelo base alcanzó accuracy elevada, pero:
+- Precision = 0;
+- Recall = 0;
+- F1 = 0.
 
-- Training Loss.
-- Validation Loss.
-- Training Accuracy.
-- Validation Accuracy.
-- Precision.
-- Recall.
-- F1.
+La accuracy resultó engañosa por el desbalance. El patrón observado no correspondió a un overfitting clásico; predominó la insuficiencia de representación y la escasez de positivos.
 
-También se generaron Training vs Validation Loss, Training vs Validation Accuracy, Precision/Recall/F1 por época, Learning Curve y Validation Curve.
+## 6. Estrategia 1 — balanceo de clases
 
-## 6. Estrategia 1 — Balanceo de clases
+Se aplicaron pesos balanceados con `sample_weight`.
 
-Se utilizaron pesos balanceados mediante `sample_weight`.
+Resultado:
+- la estrategia no recuperó correctamente la clase positiva;
+- F1 permaneció en 0.
 
-Pesos de referencia:
-
-- clase 0: 0,5714.
-- clase 1: 4,0000.
-
-Resultado: no se logró recuperar correctamente la clase relevante y `F1 = 0`.
-
-**Interpretación:** el desbalance era un problema real, pero no era la única limitación.
+Conclusión: el desbalance era real, pero no era la única causa.
 
 ## 7. Estrategia 2 — Feature Engineering
 
 Se incorporaron:
+- similitud coseno;
+- overlap de tokens;
+- relación de longitudes;
+- overlap técnico.
 
-1. `cosine_similarity`
-2. `overlap_ratio`
-3. `length_ratio`
-4. `technical_overlap`
-
-Modelo:
-
-```text
-Features de similitud
-        ↓
-StandardScaler
-        ↓
-LogisticRegression
-class_weight = balanced
-```
-
-Resultados de referencia:
+Se utilizó `StandardScaler` + `LogisticRegression(class_weight="balanced")`.
 
 | Métrica | Resultado |
 |---|---:|
@@ -107,114 +86,91 @@ Resultados de referencia:
 | F1 | 0,5714 |
 
 Matriz de confusión:
+- TN = 11
+- FP = 3
+- FN = 0
+- TP = 2
 
-```text
-TN = 11
-FP = 3
-FN = 0
-TP = 2
-```
+La validación tiene únicamente dos positivos, por lo que el Recall = 1,00 significa literalmente 2/2 y debe interpretarse con cautela.
 
-El `Recall = 1,00` debe interpretarse con cautela porque validation contiene únicamente **2 ejemplos positivos**.
+## 8. Sensibilidad de hiperparámetros
 
-## 8. Early stopping
+La validation curve del modelo base evaluó `alpha` del SGDClassifier en un rango de `10^-5` a `10^-1`.
 
-Se analizó como estrategia complementaria usando el mínimo de Validation Loss. Permitió identificar el punto de menor pérdida, pero no corrigió la incapacidad del modelo balanceado para identificar positivos.
+El F1 de validación permaneció en 0, mostrando que modificar solo la regularización no resolvía la limitación principal.
 
-## 9. Learning Curve
+El notebook `04_optimizacion.ipynb` complementa esta evidencia con:
+- sensibilidad de regularización;
+- importancia por permutación del modelo con features;
+- partial dependence de features numéricas;
+- comparación antes/después.
 
-Se implementó `learning_curve` de Scikit-learn con `GroupKFold` agrupado por `qa_id`.
+## 9. Partial dependence e importancia
 
-Hallazgo: el F1 de validation permaneció en 0 en los tamaños de entrenamiento evaluados.
+En este proyecto estos análisis se aplican al **clasificador auxiliar con features numéricas**, no al LLM.
 
-## 10. Validation Curve
+La razón es metodológica: el LLM local no se entrena con hiperparámetros supervisados dentro del proyecto. El análisis interpretable se realiza sobre el componente experimental que sí posee features y parámetros controlables.
 
-Se evaluó `alpha` del `SGDClassifier` en el rango:
+Los gráficos se generan reproduciblemente desde `notebooks/04_optimizacion.ipynb`.
 
-```text
-10^-5 → 10^-1
-```
+## 10. Interacciones
 
-El F1 de validation permaneció en 0, por lo que ajustar únicamente la regularización no resolvió el problema del modelo base.
+Las interacciones se estudian sobre combinaciones de:
+- similitud coseno;
+- overlap;
+- relación de longitudes.
+
+El objetivo es comprobar si una sola feature explica el desempeño o si la discriminación depende de combinaciones.
 
 ## 11. Comparación antes/después
 
 | Modelo | Accuracy | Precision | Recall | F1 |
 |---|---:|---:|---:|---:|
-| Modelo base | 0,8750 | 0,0000 | 0,0000 | 0,0000 |
-| Balanceo de clases | 0,5000 | 0,0000 | 0,0000 | 0,0000 |
+| Base | 0,8750 | 0,0000 | 0,0000 | 0,0000 |
+| Balanceado | 0,5000 | 0,0000 | 0,0000 | 0,0000 |
 | Feature Engineering | 0,8125 | 0,4000 | 1,0000 | 0,5714 |
 
-La mejora cuantificable principal provino de **Feature Engineering**.
+La mejora principal provino de enriquecer la representación pregunta-documento.
 
-## 12. Diagnóstico actual
+## 12. Optimización del RAG
 
-No se observó un patrón clásico de overfitting. La evidencia apunta principalmente a:
-
-- desbalance de clases;
-- muestra pequeña;
-- alta variabilidad estadística;
-- representación insuficiente de la relación pregunta-documento;
-- necesidad de ampliar el dataset QA.
-
-## 13. Optimización futura del RAG
-
-Se evaluarán experimentalmente:
-
-- tamaño de chunk;
-- overlap;
-- Top-K dense;
-- Top-K BM25;
-- pesos dense/BM25;
-- modelo de embeddings;
-- Top-N de entrada al reranker;
-- Top-K final;
-- umbral de relevancia;
+Para evitar sobreajuste al QA set, parámetros como:
+- chunking;
+- Top-K;
+- pesos de recuperación;
+- reranking;
+- umbral;
 - temperature;
-- max tokens;
-- estructura del prompt.
 
-## 14. Workshop S5 — Pendiente
+deben ajustarse en desarrollo/validación y comprobarse luego en un conjunto independiente.
 
-El instructivo final exige completar con resultados reales:
+La configuración cloud final se mantuvo conservadora:
+- Top-K = 5;
+- threshold = 0,45;
+- temperature = 0,0.
 
-- hiperparámetros explorados y rangos;
-- análisis de sensibilidad;
-- partial dependence plots;
-- ranking de importancia de hiperparámetros;
-- análisis de interacciones;
-- configuración final seleccionada;
-- comparación antes/después de la optimización.
+Temperature = 0,0 fue elegida por reproducibilidad en la demo cloud.
 
-Estos apartados no deben completarse con valores inventados.
+## 13. Estabilidad cloud
 
-## 15. Criterios de selección final
+En pruebas repetidas:
+- temperature 0,0 produjo respuesta dominante 100 %;
+- mantuvo orden de fuentes estable;
+- redujo variabilidad respecto a temperature 0,2.
 
-La configuración final se evaluará mediante:
+La política final prioriza reproducibilidad y abstención segura.
 
-- Precision@K;
-- Recall@K;
-- F1;
-- Grounded Response Rate;
-- latencia;
-- estabilidad;
-- costo computacional;
-- consumo de memoria.
+## 14. Resultado final
 
-## 16. Riesgo de sobreajuste al QA set
-
-No se deberán ajustar repetidamente chunking, Top-K, pesos dense/BM25, reranking o thresholds sobre el mismo conjunto usado para reportar resultados finales.
+La optimización no consistió en “entrenar más” un LLM. El principal avance fue:
 
 ```text
-Development
-    ↓
-Tuning
-    ↓
-Validation
-    ↓
-Test final independiente
+representación más informativa
++ recuperación controlada
++ ruta estructurada determinística
++ evidencia visible
++ abstención
++ runtime cloud reproducible
 ```
 
-## 17. Conclusión
-
-La optimización realizada hasta el momento demuestra que mejorar la representación de la relación pregunta-documento genera más impacto que ajustar únicamente pesos o regularización. La siguiente etapa deberá trasladar estos aprendizajes al pipeline RAG y completar el análisis específico del Workshop S5.
+Esta estrategia es coherente con el objetivo del asistente: responder con evidencia y reducir respuestas no sustentadas.
