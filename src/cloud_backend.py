@@ -39,6 +39,7 @@ class CloudSource:
 @dataclass
 class CloudResponse:
     answer: str
+    question: str
     sources: list[CloudSource]
     abstained: bool
     abstention_stage: str | None
@@ -423,7 +424,8 @@ class CloudRAGPipeline:
 
         if not sources:
             return CloudResponse(
-                answer=(
+                                question=question,
+answer=(
                     "No se encontró evidencia suficiente en las "
                     "fuentes disponibles para responder esta consulta."
                 ),
@@ -440,7 +442,8 @@ class CloudRAGPipeline:
 
         if not selected:
             return CloudResponse(
-                answer=(
+                                question=question,
+answer=(
                     "No se encontró evidencia suficiente en las "
                     "fuentes disponibles para responder esta consulta."
                 ),
@@ -464,7 +467,8 @@ class CloudRAGPipeline:
             )
 
         return CloudResponse(
-            answer="\n".join(lines).strip(),
+                        question=question,
+answer="\n".join(lines).strip(),
             sources=sources,
             abstained=False,
             abstention_stage=None,
