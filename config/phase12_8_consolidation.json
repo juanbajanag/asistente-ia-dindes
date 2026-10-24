@@ -1,0 +1,31 @@
+{
+  "phase": "12.8",
+  "title": "Consolidación final de robustez",
+  "accepted_mitigations": [
+    "ruido_leve"
+  ],
+  "known_limitations": [
+    "consulta_telegrafica"
+  ],
+  "final_acceptance_thresholds": {
+    "pass_rate_min_pct": 90.0,
+    "max_degradation_pp": 10.0,
+    "rag_grounded_rate_min_pct": 90.0,
+    "abstention_accuracy_min_pct": 100.0,
+    "baseline_pass_rate_min_pct": 100.0
+  },
+  "integration_policy": {
+    "integrate_typo_mitigation": true,
+    "integrate_telegraphic_expansion": false,
+    "preserve_eval013_abstention": true,
+    "preserve_baseline": true,
+    "do_not_change_top_k": true,
+    "do_not_change_retrieval_threshold": true
+  },
+  "notes": [
+    "La mitigación de ruido tipográfico fue aceptada por evidencia cuantitativa.",
+    "Las estrategias telegráficas de Fases 12.5 y 12.7 fueron rechazadas por degradar el desempeño.",
+    "La consulta telegráfica se documenta como limitación conocida del MVP.",
+    "La Fase 12.8 no modifica el MVP congelado; consolida evidencia y decisión técnica."
+  ]
+}

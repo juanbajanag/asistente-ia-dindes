@@ -1,0 +1,17 @@
+{
+  "local": {
+    "temperature": 0.2,
+    "top_k": 5,
+    "dense_min_score": 0.45
+  },
+  "cloud": {
+    "temperature": 0.0,
+    "top_k": 5,
+    "dense_min_score": 0.45
+  },
+  "policy": {
+    "top_k_locked": true,
+    "dense_min_score_locked": true,
+    "temperature_environment_specific": true
+  }
+}

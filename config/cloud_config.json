@@ -1,0 +1,23 @@
+{
+  "runtime": "cloud",
+  "deployment_target": "streamlit_community_cloud",
+  "public_demo": true,
+  "use_local_llm": false,
+  "allow_remote_llm": false,
+  "fallback_generation": "evidence_extract",
+  "top_k": 5,
+  "show_sources": true,
+  "show_latency": true,
+  "show_mode": true,
+  "show_abstention": true,
+  "safety": {
+    "institutional_documents_allowed": false,
+    "credentials_allowed": false,
+    "synthetic_or_public_demo_data_only": true
+  },
+  "demo_examples": [
+    "¿Cuál es el stock del taladro DEWALT modelo DWD024-B3?",
+    "¿Qué herramientas requieren reposición?",
+    "¿Qué documento contiene información sobre el inventario de bodega?"
+  ]
+}

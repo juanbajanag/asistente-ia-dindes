@@ -1,0 +1,47 @@
+{
+  "phase": "12",
+  "title": "Validación en Contexto Operacional Simulado",
+  "thresholds_defined_before_execution": true,
+  "thresholds": {
+    "pass_rate_min_pct": 90.0,
+    "max_degradation_pp": 10.0,
+    "rag_grounded_rate_min_pct": 90.0,
+    "abstention_accuracy_min_pct": 100.0,
+    "structured_latency_avg_max_ms": 100.0,
+    "rag_latency_avg_max_ms": 15000.0
+  },
+  "seeds": [42, 43, 44],
+  "bootstrap_samples": 2000,
+  "scenarios": [
+    {
+      "id": "baseline",
+      "enabled": true,
+      "description": "Evaluación original sin perturbaciones."
+    },
+    {
+      "id": "sin_acentos",
+      "enabled": true,
+      "description": "Elimina tildes y otros signos diacríticos de las consultas."
+    },
+    {
+      "id": "ruido_leve",
+      "enabled": true,
+      "description": "Introduce errores tipográficos leves y reproducibles sin alterar códigos alfanuméricos."
+    },
+    {
+      "id": "consulta_telegrafica",
+      "enabled": true,
+      "description": "Elimina palabras funcionales para simular consultas breves de operación."
+    },
+    {
+      "id": "ruido_formato",
+      "enabled": true,
+      "description": "Cambia mayúsculas, puntuación y espacios para simular entrada no normalizada."
+    }
+  ],
+  "notes": [
+    "Los umbrales son criterios provisionales del proyecto y deben permanecer fijos durante la ejecución de esta fase.",
+    "La Fase 12 no modifica permanentemente evaluation/evaluation_cases.csv ni los resultados oficiales de la Fase 11.",
+    "Las pruebas de perturbación reutilizan las expectativas originales de cada caso."
+  ]
+}

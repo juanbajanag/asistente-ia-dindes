@@ -1,0 +1,27 @@
+{
+  "phase": "12.7",
+  "title": "Mitigación telegráfica conservadora",
+  "target_scenario": "consulta_telegrafica",
+  "seeds": [42, 43, 44],
+  "fixed_acceptance_thresholds": {
+    "pass_rate_min_pct": 90.0,
+    "max_degradation_pp": 10.0,
+    "rag_grounded_rate_min_pct": 90.0,
+    "abstention_accuracy_min_pct": 100.0,
+    "baseline_pass_rate_min_pct": 100.0
+  },
+  "safety_rules": {
+    "preserve_identifiers": true,
+    "preserve_numbers": true,
+    "preserve_models": true,
+    "do_not_change_top_k": true,
+    "do_not_change_retrieval_threshold": true,
+    "do_not_force_semantic_expansion": true,
+    "leave_ambiguous_queries_unchanged": true
+  },
+  "notes": [
+    "La estrategia solo aplica transformaciones cuando la intención puede inferirse con alta confianza.",
+    "Las consultas ambiguas se conservan sin expansión semántica.",
+    "Los umbrales son los mismos de la Fase 12 y no deben relajarse después de observar resultados."
+  ]
+}

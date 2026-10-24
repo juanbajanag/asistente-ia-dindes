@@ -1,0 +1,29 @@
+{
+  "phase": "12.5",
+  "title": "Mitigación controlada de robustez",
+  "target_scenarios": [
+    "ruido_leve",
+    "consulta_telegrafica"
+  ],
+  "seeds": [42, 43, 44],
+  "fixed_acceptance_thresholds": {
+    "pass_rate_min_pct": 90.0,
+    "max_degradation_pp": 10.0,
+    "rag_grounded_rate_min_pct": 90.0,
+    "abstention_accuracy_min_pct": 100.0,
+    "structured_latency_avg_max_ms": 100.0,
+    "rag_latency_avg_max_ms": 15000.0
+  },
+  "regression_requirements": {
+    "baseline_pass_rate_min_pct": 100.0,
+    "eval013_must_abstain": true,
+    "do_not_change_top_k": true,
+    "do_not_change_retrieval_threshold": true
+  },
+  "notes": [
+    "Los umbrales permanecen iguales a los definidos antes de la Fase 12.",
+    "La mitigación se limita a normalización y expansión conservadora de consultas.",
+    "No se modifica Top-K ni el umbral de recuperación.",
+    "Esta fase es experimental y no modifica permanentemente el MVP."
+  ]
+}

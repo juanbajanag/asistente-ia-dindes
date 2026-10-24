@@ -38,3 +38,80 @@ models/*.safetensors
 
 # Cachés
 .cache/
+
+# Streamlit secrets
+.streamlit/secrets.toml
+
+# Runtime logs / local feedback
+results/audit_log.csv
+results/feedback_usuarios.csv
+
+# Documentos privados ingeridos
+data/private_ingested/
+
+# Ya definidos en fases previas
+.streamlit/secrets.toml
+results/audit_log.csv
+results/feedback_usuarios.csv
+
+# --- Fase 13 Cloud ---
+
+# Secrets
+
+# Local model weights / caches
+models/
+modelos/
+*.gguf
+*.safetensors
+*.bin
+huggingface/
+
+# Generated evaluation / release artifacts
+release/
+evaluation/**/results/
+evaluation/**/diagnostics/
+evaluation/**/reporting/
+
+# OS / IDE
+.vscode/
+.idea/
+
+# Local backups
+*.bak
+*.backup
+
+# --- Fase 13 Cloud ---
+
+# --- Fase 13 Cloud ---
+
+# Entorno local
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Variables y secretos
+.env
+.env.*
+.streamlit/secrets.toml
+
+# Respaldos
+backups/
+*.bak
+*.backup
+*.fase*.bak
+
+# Resultados generados
+results/
+evaluation/**/results/
+evaluation/**/diagnostics/
+evaluation/**/reporting/
+release/**/*.zip
+*.zip
+
+# Temporales
+.ipynb_checkpoints/
+.pytest_cache/
+.DS_Store
+Thumbs.db
