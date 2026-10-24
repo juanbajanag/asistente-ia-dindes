@@ -4,6 +4,8 @@ from dataclasses import dataclass, field
 from typing import Any
 import re
 
+from .structured_query import StructuredInventoryEngine
+
 
 TOKEN_RE = re.compile(
     r"\b[\wÁÉÍÓÚÜÑáéíóúüñ-]+\b",
@@ -44,7 +46,12 @@ class CloudResponse:
     abstained: bool
     abstention_stage: str | None
     retrieval_count: int
-    mode: str = "rag"
+    response_mode: str = "rag"
+    structured_rows: list[dict[str, Any]] = field(default_factory=list)
+
+    @property
+    def mode(self) -> str:
+        return self.response_mode
 
 
 def normalize_text(value: Any) -> str:
@@ -56,12 +63,25 @@ def normalize_text(value: Any) -> str:
 
 
 def tokenize(value: Any) -> set[str]:
-    return {
-        token
-        for token in TOKEN_RE.findall(normalize_text(value))
-        if len(token) >= 3
-        and token not in STOPWORDS
-    }
+    tokens = set()
+
+    for raw in TOKEN_RE.findall(normalize_text(value)):
+        if raw in STOPWORDS:
+            continue
+
+        # Conservar códigos cortos con dígitos: K1, 3D, etc.
+        if len(raw) < 3 and not any(ch.isdigit() for ch in raw):
+            continue
+
+        token = raw
+
+        # Normalización plural mínima.
+        if len(token) > 4 and token.endswith("s"):
+            token = token[:-1]
+
+        tokens.add(token)
+
+    return tokens
 
 
 def informative_tokens(value: Any) -> set[str]:
@@ -257,12 +277,14 @@ class CloudRAGPipeline:
         self.top_k = int(top_k)
         self.temperature = float(temperature)
         self.records: list[Any] = []
+        self.structured_engine: StructuredInventoryEngine | None = None
 
     def fit(
         self,
         records: list[Any],
     ) -> "CloudRAGPipeline":
         self.records = list(records or [])
+        self.structured_engine = StructuredInventoryEngine(self.records)
         return self
 
     def _record_is_supported(
@@ -420,6 +442,53 @@ class CloudRAGPipeline:
         self,
         question: str,
     ) -> CloudResponse:
+        question = str(question or "").strip()
+
+        if not question:
+            raise ValueError("La pregunta no puede estar vacía.")
+
+        # Ruta estructurada cloud
+        structured = (
+            self.structured_engine.execute(question)
+            if self.structured_engine is not None
+            else None
+        )
+
+        if structured is not None:
+            query = structured.get("query")
+            records = list(structured.get("records", []))
+
+            has_entity_filter = bool(
+                getattr(query, "brand", None)
+                or getattr(query, "model", None)
+                or getattr(query, "description_contains", None)
+            )
+
+            # Si se pidió una entidad concreta y no existe en las
+            # filas estructuradas, permitir fallback a RAG.
+            fallback_to_rag = has_entity_filter and not records
+
+            if not fallback_to_rag:
+                sources = self.structured_engine.to_retrieval_results(records)
+
+                return CloudResponse(
+                    question=question,
+                    answer=str(structured.get("answer", "")),
+                    sources=sources,
+                    abstained=bool(structured.get("abstained", False)),
+                    abstention_stage=(
+                        "structured"
+                        if structured.get("abstained", False)
+                        else None
+                    ),
+                    retrieval_count=len(sources),
+                    response_mode="structured",
+                    structured_rows=list(
+                        structured.get("structured_rows", [])
+                    ),
+                )
+
+        # Ruta RAG cloud
         sources = self._retrieve(question)
 
         if not sources:

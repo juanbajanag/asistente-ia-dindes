@@ -178,6 +178,7 @@ class StructuredQueryRouter:
         "bellota",
         "dormer",
         "best value",
+        "creality",
     ]
 
     @classmethod
@@ -198,6 +199,7 @@ class StructuredQueryRouter:
 
     @classmethod
     def _extract_model(cls, q: str) -> str | None:
+        # Forma explícita: modelo DWD024-B3
         match = re.search(
             r"\bmodelo\s+([a-z0-9./_-]+)",
             q,
@@ -205,6 +207,29 @@ class StructuredQueryRouter:
 
         if match:
             return match.group(1).upper()
+
+        # Forma natural: Creality K1, DEWALT DWD024-B3, etc.
+        # Solo se usa después de una marca conocida.
+        for brand in cls.KNOWN_BRANDS:
+            brand_pattern = re.escape(brand)
+
+            match = re.search(
+                rf"\b{brand_pattern}\b\s+([a-z0-9./_-]+)",
+                q,
+            )
+
+            if not match:
+                continue
+
+            candidate = match.group(1).strip()
+            blocked = {
+                "con", "sin", "stock", "cantidad",
+                "disponible", "disponibles",
+                "operativo", "operativos", "modelo",
+            }
+
+            if candidate and candidate not in blocked:
+                return candidate.upper()
 
         return None
 
@@ -841,40 +866,69 @@ class StructuredInventoryEngine:
         # Lookup
         # -------------------------------------------------------------
         if query.operator == "lookup":
-            q_tokens = set(
-                re.findall(
-                    r"[a-z0-9._/-]{3,}",
-                    normalize(question),
-                )
+            # Si el router ya obtuvo marca/modelo y el filtro produjo
+            # candidatos, esa coincidencia estructurada es suficiente.
+            exact_entity_match = bool(
+                (query.brand or query.model)
+                and candidates
             )
 
-            stop = {
-                "cual", "stock", "cantidad", "total", "del",
-                "las", "los", "una", "uno", "hay", "modelo",
-                "marca", "herramienta", "herramientas", "unidades",
-            }
-
-            q_tokens -= stop
-            scored = []
-
-            for record in candidates:
-                text_tokens = set(
+            if not exact_entity_match:
+                q_tokens = set(
                     re.findall(
-                        r"[a-z0-9._/-]{3,}",
-                        normalize(getattr(record, "text", "")),
+                        r"[a-z0-9._/-]{2,}",
+                        normalize(question),
                     )
                 )
 
-                score = len(q_tokens.intersection(text_tokens))
-                scored.append((score, record))
+                stop = {
+                    "cual", "stock", "cantidad", "total", "del",
+                    "las", "los", "una", "uno", "hay", "modelo",
+                    "marca", "herramienta", "herramientas", "unidades",
+                    "cuanto", "cuanta", "cuantos", "cuantas",
+                    "estan", "disponible", "disponibles",
+                }
 
-            scored.sort(key=lambda pair: pair[0], reverse=True)
+                q_tokens -= stop
+                scored = []
 
-            candidates = [
-                record
-                for score, record in scored
-                if score > 0
-            ]
+                for record in candidates:
+                    record_text = " ".join(
+                        str(value)
+                        for value in (
+                            getattr(record, "title", ""),
+                            getattr(record, "text", ""),
+                            self._get(record, "description", ""),
+                            self._get(record, "brand", ""),
+                            self._get(record, "model", ""),
+                        )
+                        if value not in (None, "")
+                    )
+
+                    text_tokens = set(
+                        re.findall(
+                            r"[a-z0-9._/-]{2,}",
+                            normalize(record_text),
+                        )
+                    )
+
+                    score = len(
+                        q_tokens.intersection(text_tokens)
+                    )
+                    scored.append(
+                        (score, record)
+                    )
+
+                scored.sort(
+                    key=lambda pair: pair[0],
+                    reverse=True,
+                )
+
+                candidates = [
+                    record
+                    for score, record in scored
+                    if score > 0
+                ]
 
             if not candidates:
                 return {
