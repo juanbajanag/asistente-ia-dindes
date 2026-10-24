@@ -438,6 +438,95 @@ class CloudRAGPipeline:
 
         return selected
 
+    @staticmethod
+    def _metadata_value(
+        source: CloudSource,
+        *keys: str,
+    ) -> str:
+        metadata = dict(source.metadata or {})
+
+        for key in keys:
+            value = metadata.get(key)
+            if value not in (None, ""):
+                return str(value).strip()
+
+        return ""
+
+    @staticmethod
+    def _extract_labeled_value(
+        text: str,
+        label: str,
+    ) -> str:
+        match = re.search(
+            rf"\b{re.escape(label)}\s*:\s*([^.;\n]+)",
+            str(text or ""),
+            flags=re.IGNORECASE,
+        )
+
+        return match.group(1).strip() if match else ""
+
+    def _synthesize_inventory_quantity(
+        self,
+        question: str,
+        sources: list[CloudSource],
+    ) -> str | None:
+        q = normalize_text(question)
+
+        if not re.search(
+            r"\b(cuantas|cuantos|cuanta|cuanto|cantidad|stock|disponibles|disponible)\b",
+            q,
+        ):
+            return None
+
+        for source_idx, source in enumerate(sources, start=1):
+            if normalize_text(source.source_type) != "inventory":
+                continue
+
+            quantity = self._metadata_value(
+                source, "quantity", "cantidad", "CANTIDAD"
+            ) or self._extract_labeled_value(source.text, "Cantidad")
+
+            stock = self._metadata_value(
+                source, "stock", "STOCK"
+            ) or self._extract_labeled_value(source.text, "Stock")
+
+            status = self._metadata_value(
+                source, "status", "estado", "ESTADO"
+            ) or self._extract_labeled_value(source.text, "Estado")
+
+            brand = self._metadata_value(
+                source, "brand", "marca", "MARCA"
+            ) or self._extract_labeled_value(source.text, "Marca")
+
+            model = self._metadata_value(
+                source, "model", "modelo", "MODELO"
+            ) or self._extract_labeled_value(source.text, "Modelo")
+
+            description = self._metadata_value(
+                source, "description", "descripcion", "DESCRIPCION"
+            ) or self._extract_labeled_value(source.text, "Descripción")
+
+            identity = " ".join(
+                part for part in (description, brand, model) if part
+            ).strip()
+
+            if "stock" in q and stock:
+                return (
+                    f"El stock de {identity or 'este artículo'} "
+                    f"es de {stock} unidad(es) [F{source_idx}]."
+                )
+
+            if quantity:
+                suffix = f" Estado: {status}." if status else ""
+                return (
+                    f"Hay {quantity} unidad(es) de "
+                    f"{identity or 'este artículo'} registradas "
+                    f"en la evidencia disponible [F{source_idx}]."
+                    f"{suffix}"
+                )
+
+        return None
+
     def ask(
         self,
         question: str,
@@ -508,6 +597,23 @@ answer=(
             question,
             sources,
         )
+
+        quantitative_answer = self._synthesize_inventory_quantity(
+            question,
+            sources,
+        )
+
+        if quantitative_answer:
+            return CloudResponse(
+                question=question,
+                answer=quantitative_answer,
+                sources=sources,
+                abstained=False,
+                abstention_stage=None,
+                retrieval_count=len(sources),
+                response_mode="rag",
+                structured_rows=[],
+            )
 
         if not selected:
             return CloudResponse(
