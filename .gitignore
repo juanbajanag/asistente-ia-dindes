@@ -115,3 +115,7 @@ release/**/*.zip
 .pytest_cache/
 .DS_Store
 Thumbs.db
+
+# Permitir corpus sintético para demo cloud
+!data/private_ingested/
+!data/private_ingested/knowledge_chunks.jsonl
