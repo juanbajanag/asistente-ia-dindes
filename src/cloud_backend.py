@@ -538,6 +538,84 @@ class CloudRAGPipeline:
             metadata=get_record_metadata(record),
         )
 
+    def _source_detail_lines(self, source: CloudSource) -> list[str]:
+        metadata = dict(source.metadata or {})
+        fields = [
+            ("Ítem", ("item", "ITEM")),
+            ("Código", ("codigo", "código", "code", "codigo_bien", "Código Bien")),
+            ("Descripción", ("description", "descripcion", "DESCRIPCION", "descripción")),
+            ("Marca", ("brand", "marca", "MARCA")),
+            ("Modelo", ("model", "modelo", "MODELO")),
+            ("Cantidad", ("quantity", "cantidad", "CANTIDAD")),
+            ("Stock", ("stock", "STOCK")),
+            ("Estado", ("status", "estado", "ESTADO")),
+            ("Ubicación", ("location", "ubicacion", "ubicación", "UBICACION")),
+            ("Responsable", ("responsible", "responsable", "RESPONSABLE")),
+            ("Fecha", ("date", "fecha", "document_date", "fecha_actualizacion")),
+            ("Versión", ("version", "versión")),
+            ("Tipo", ("document_type", "tipo_documento", "type")),
+            ("Sección", ("section", "seccion", "sección")),
+            ("Estado documental", ("source_status",)),
+        ]
+        lines = []
+        seen = set()
+        if source.title:
+            lines.append(f"- Título: {source.title}")
+            seen.add(normalize_text(source.title))
+        for label, keys in fields:
+            value = ""
+            for key in keys:
+                candidate = metadata.get(key)
+                if candidate not in (None, ""):
+                    value = str(candidate).strip()
+                    break
+            if value and normalize_text(value) not in seen:
+                lines.append(f"- {label}: {value}")
+                seen.add(normalize_text(value))
+        raw = str(source.text or "").strip()
+        if raw and len(re.findall(r"\w+", raw, flags=re.UNICODE)) >= 3:
+            cleaned = re.sub(r"\s+", " ", raw).strip()
+            if len(cleaned) > 700:
+                cleaned = cleaned[:697].rstrip() + "..."
+            if normalize_text(cleaned) not in seen:
+                lines.append(f"- Evidencia: {cleaned}")
+        return lines
+
+    def _special_model_detail_response(self, question: str) -> CloudResponse | None:
+        q = normalize_text(question)
+        if not any(marker in q for marker in (
+            "que informacion", "qué información", "informacion existe",
+            "información existe", "detalle", "datos del modelo"
+        )):
+            return None
+        match = re.search(r"\bmodelo\s+([a-z0-9./_+\-]+)", q, flags=re.IGNORECASE)
+        if not match:
+            return None
+        model = match.group(1)
+        model_norm = normalize_text(model)
+        for idx, record in enumerate(self.records, start=1):
+            metadata = get_record_metadata(record)
+            haystack = " ".join([
+                get_record_title(record), get_record_text(record),
+                " ".join(str(v) for v in metadata.values() if v not in (None, "")),
+            ])
+            if model_norm not in normalize_text(haystack):
+                continue
+            source = self._source_from_record(record, idx)
+            lines = self._source_detail_lines(source)
+            if not lines:
+                return None
+            answer = (
+                f"La información disponible para el modelo {model.upper()} es:\n\n"
+                + "\n".join(f"{line} [F1]" for line in lines)
+            )
+            return CloudResponse(
+                question=question, answer=answer, sources=[source],
+                abstained=False, abstention_stage=None, retrieval_count=1,
+                response_mode="rag", structured_rows=[]
+            )
+        return None
+
     def _special_exact_identifier_response(self, question: str) -> CloudResponse | None:
         identifiers = re.findall(r"\b\d{5,}\b", str(question or ""))
         if not identifiers:
@@ -555,18 +633,16 @@ class CloudRAGPipeline:
         if not matches:
             return None
         sources = matches[: self.top_k]
-        fragments = []
+        blocks = []
         for source_idx, source in enumerate(sources, start=1):
-            sentences = sentence_split(source.text)
-            selected = [s for s in sentences if any(identifier in s for identifier in identifiers)]
-            fragment = selected[0] if selected else source.text.strip()
-            if len(fragment) > 700:
-                fragment = fragment[:697].rstrip() + "..."
-            if fragment:
-                fragments.append(f"- {fragment} [F{source_idx}]")
-        answer = "Se encontró información asociada al identificador solicitado:"
-        if fragments:
-            answer += "\n\n" + "\n".join(fragments)
+            details = self._source_detail_lines(source)
+            if details:
+                blocks.append("\n".join(f"{line} [F{source_idx}]" for line in details))
+        answer = "Se encontró información asociada al identificador " + ", ".join(identifiers) + "."
+        if blocks:
+            answer += "\n\n" + "\n\n".join(blocks)
+        else:
+            answer += "\n\nLa fuente coincide con el identificador, pero no contiene campos descriptivos adicionales."
         return CloudResponse(question=question, answer=answer, sources=sources, abstained=False,
             abstention_stage=None, retrieval_count=len(sources), response_mode="rag", structured_rows=[])
 
@@ -685,6 +761,10 @@ class CloudRAGPipeline:
         exact_identifier = self._special_exact_identifier_response(question)
         if exact_identifier is not None:
             return exact_identifier
+
+        model_detail = self._special_model_detail_response(question)
+        if model_detail is not None:
+            return model_detail
 
         document_status = self._special_document_status_response(question)
         if document_status is not None:
