@@ -161,7 +161,7 @@ streamlit run streamlit_app.py
 python -m unittest discover -s tests -p "test_*.py" -v
 ```
 
-La suite validada ejecutó **13 pruebas con resultado OK**.
+La suite validada ejecutó **34 pruebas con resultado OK**.
 
 ---
 
