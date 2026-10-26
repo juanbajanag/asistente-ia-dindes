@@ -527,6 +527,152 @@ class CloudRAGPipeline:
 
         return None
 
+    def _source_from_record(self, record: Any, index: int, score: float = 1.0) -> CloudSource:
+        source_type = record.get("source_type", "document") if isinstance(record, dict) else getattr(record, "source_type", "document")
+        return CloudSource(
+            source_type=str(source_type),
+            record_id=get_record_id(record, index),
+            title=get_record_title(record),
+            score=float(score),
+            text=get_record_text(record),
+            metadata=get_record_metadata(record),
+        )
+
+    def _special_exact_identifier_response(self, question: str) -> CloudResponse | None:
+        identifiers = re.findall(r"\b\d{5,}\b", str(question or ""))
+        if not identifiers:
+            return None
+        matches = []
+        for idx, record in enumerate(self.records, start=1):
+            metadata = get_record_metadata(record)
+            haystack = " ".join([
+                get_record_title(record),
+                get_record_text(record),
+                " ".join(str(v) for v in metadata.values() if v not in (None, "")),
+            ])
+            if all(identifier in haystack for identifier in identifiers):
+                matches.append(self._source_from_record(record, idx))
+        if not matches:
+            return None
+        sources = matches[: self.top_k]
+        fragments = []
+        for source_idx, source in enumerate(sources, start=1):
+            sentences = sentence_split(source.text)
+            selected = [s for s in sentences if any(identifier in s for identifier in identifiers)]
+            fragment = selected[0] if selected else source.text.strip()
+            if len(fragment) > 700:
+                fragment = fragment[:697].rstrip() + "..."
+            if fragment:
+                fragments.append(f"- {fragment} [F{source_idx}]")
+        answer = "Se encontró información asociada al identificador solicitado:"
+        if fragments:
+            answer += "\n\n" + "\n".join(fragments)
+        return CloudResponse(question=question, answer=answer, sources=sources, abstained=False,
+            abstention_stage=None, retrieval_count=len(sources), response_mode="rag", structured_rows=[])
+
+    def _special_document_status_response(self, question: str) -> CloudResponse | None:
+        q = normalize_text(question)
+        if "document" not in q:
+            return None
+        wanted = "vigente" if "vigent" in q else ("borrador" if "borrador" in q else None)
+        if wanted is None:
+            return None
+        unique, seen = [], set()
+        for idx, record in enumerate(self.records, start=1):
+            source_type = record.get("source_type", "document") if isinstance(record, dict) else getattr(record, "source_type", "document")
+            if normalize_text(source_type) != "document":
+                continue
+            metadata = get_record_metadata(record)
+            status = normalize_text(metadata.get("source_status") or metadata.get("status") or metadata.get("estado"))
+            if status != wanted:
+                continue
+            source = self._source_from_record(record, idx)
+            key = (str(metadata.get("document_id") or source.record_id), source.title)
+            if key in seen:
+                continue
+            seen.add(key); unique.append(source)
+        if not unique:
+            return CloudResponse(question=question,
+                answer=f"No se encontraron documentos con estado {wanted} en las fuentes disponibles.",
+                sources=[], abstained=True, abstention_stage="retrieval", retrieval_count=0,
+                response_mode="rag", structured_rows=[])
+        sources = unique[: self.top_k]
+        lines = [f"Se encontraron {len(unique)} documento(s) con estado {wanted}.", ""]
+        for source_idx, source in enumerate(sources, start=1):
+            lines.append(f"- {source.title or source.record_id} [F{source_idx}]")
+        if len(unique) > len(sources):
+            lines.append(f"- Se muestran {len(sources)} de {len(unique)} documentos por el límite Top-K.")
+        return CloudResponse(question=question, answer="\n".join(lines), sources=sources, abstained=False,
+            abstention_stage=None, retrieval_count=len(sources), response_mode="rag", structured_rows=[])
+
+    def _special_ai_inventory_response(self, question: str) -> CloudResponse | None:
+        q = normalize_text(question)
+        ai_intent = (("procesamiento" in q and (" ia" in f" {q}" or "inteligencia artificial" in q)) or "entrenar modelos" in q)
+        if not ai_intent:
+            return None
+        patterns = ("procesamiento ia", "alto rendimiento", "workstation ia", "rtx 5080", "jetson orin", "gpu para procesamiento", "computador embebido")
+        matches = []
+        for idx, record in enumerate(self.records, start=1):
+            source_type = record.get("source_type", "document") if isinstance(record, dict) else getattr(record, "source_type", "document")
+            if normalize_text(source_type) != "inventory":
+                continue
+            metadata = get_record_metadata(record)
+            haystack = normalize_text(" ".join([
+                get_record_title(record), get_record_text(record),
+                " ".join(str(v) for v in metadata.values() if v not in (None, "")),
+            ]))
+            if any(pattern in haystack for pattern in patterns):
+                matches.append(self._source_from_record(record, idx))
+        if not matches:
+            return None
+        sources = matches[: self.top_k]
+        lines = ["Los principales componentes del inventario relacionados con procesamiento de IA son:", ""]
+        for source_idx, source in enumerate(sources, start=1):
+            description = self._metadata_value(source, "description", "descripcion", "DESCRIPCION") or self._extract_labeled_value(source.text, "Descripción") or source.title
+            brand = self._metadata_value(source, "brand", "marca", "MARCA") or self._extract_labeled_value(source.text, "Marca")
+            model = self._metadata_value(source, "model", "modelo", "MODELO") or self._extract_labeled_value(source.text, "Modelo")
+            identity = " ".join(part for part in (description, brand, model) if part).strip()
+            lines.append(f"- {identity or source.record_id} [F{source_idx}]")
+        return CloudResponse(question=question, answer="\n".join(lines), sources=sources, abstained=False,
+            abstention_stage=None, retrieval_count=len(sources), response_mode="rag", structured_rows=[])
+
+    def _synthesize_inventory_status(self, question: str, sources: list[CloudSource]) -> str | None:
+        q = normalize_text(question)
+        if not re.search(r"\b(estado|condicion|condición)\b", q):
+            return None
+        for source_idx, source in enumerate(sources, start=1):
+            if normalize_text(source.source_type) != "inventory":
+                continue
+            status = self._metadata_value(source, "status", "estado", "ESTADO") or self._extract_labeled_value(source.text, "Estado")
+            if not status:
+                continue
+            description = self._metadata_value(source, "description", "descripcion", "DESCRIPCION") or self._extract_labeled_value(source.text, "Descripción") or source.title
+            brand = self._metadata_value(source, "brand", "marca", "MARCA") or self._extract_labeled_value(source.text, "Marca")
+            model = self._metadata_value(source, "model", "modelo", "MODELO") or self._extract_labeled_value(source.text, "Modelo")
+            identity = " ".join(part for part in (description, brand, model) if part).strip()
+            return f"El estado de {identity or 'este artículo'} es {status} [F{source_idx}]."
+        return None
+
+    def _synthesize_inventory_detail(self, question: str, sources: list[CloudSource]) -> str | None:
+        q = normalize_text(question)
+        if not any(marker in q for marker in ("que informacion", "qué información", "informacion existe", "información existe", "detalle", "datos del modelo")):
+            return None
+        for source_idx, source in enumerate(sources, start=1):
+            if normalize_text(source.source_type) != "inventory":
+                continue
+            values = {
+                "Descripción": self._metadata_value(source, "description", "descripcion", "DESCRIPCION") or self._extract_labeled_value(source.text, "Descripción") or source.title,
+                "Marca": self._metadata_value(source, "brand", "marca", "MARCA") or self._extract_labeled_value(source.text, "Marca"),
+                "Modelo": self._metadata_value(source, "model", "modelo", "MODELO") or self._extract_labeled_value(source.text, "Modelo"),
+                "Cantidad": self._metadata_value(source, "quantity", "cantidad", "CANTIDAD") or self._extract_labeled_value(source.text, "Cantidad"),
+                "Stock": self._metadata_value(source, "stock", "STOCK") or self._extract_labeled_value(source.text, "Stock"),
+                "Estado": self._metadata_value(source, "status", "estado", "ESTADO") or self._extract_labeled_value(source.text, "Estado"),
+            }
+            available = [f"{key}: {value}" for key, value in values.items() if value not in (None, "")]
+            if available:
+                return "La evidencia disponible registra: " + "; ".join(available) + f" [F{source_idx}]."
+        return None
+
     def ask(
         self,
         question: str,
@@ -535,6 +681,18 @@ class CloudRAGPipeline:
 
         if not question:
             raise ValueError("La pregunta no puede estar vacía.")
+
+        exact_identifier = self._special_exact_identifier_response(question)
+        if exact_identifier is not None:
+            return exact_identifier
+
+        document_status = self._special_document_status_response(question)
+        if document_status is not None:
+            return document_status
+
+        ai_inventory = self._special_ai_inventory_response(question)
+        if ai_inventory is not None:
+            return ai_inventory
 
         # Ruta estructurada cloud
         structured = (
@@ -592,6 +750,16 @@ answer=(
                 abstention_stage="retrieval",
                 retrieval_count=0,
             )
+
+        status_answer = self._synthesize_inventory_status(question, sources)
+        if status_answer:
+            return CloudResponse(question=question, answer=status_answer, sources=sources, abstained=False,
+                abstention_stage=None, retrieval_count=len(sources), response_mode="rag", structured_rows=[])
+
+        detail_answer = self._synthesize_inventory_detail(question, sources)
+        if detail_answer:
+            return CloudResponse(question=question, answer=detail_answer, sources=sources, abstained=False,
+                abstention_stage=None, retrieval_count=len(sources), response_mode="rag", structured_rows=[])
 
         selected = self._select_evidence_sentences(
             question,

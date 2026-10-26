@@ -2312,6 +2312,10 @@ with tab_map["Consulta"]:
     if ask_clicked:
 
         if not question.strip():
+            st.session_state.last_response = None
+            st.session_state.last_question = ""
+            reset_feedback_state()
+
             st.warning(
                 "Ingrese una pregunta."
             )

@@ -260,6 +260,43 @@ class StructuredQueryRouter:
         model = cls._extract_model(q)
 
         # -------------------------------------------------------------
+        # Entidad explícita no reconocida
+        # -------------------------------------------------------------
+        # Evita que una consulta como "¿Cuántos drones DJI Phantom 99
+        # hay disponibles?" pierda el filtro de entidad y termine
+        # contando todo el inventario.
+        description_contains = None
+
+        if brand is None and model is None:
+            entity_match = re.search(
+                r"\b(?:drone|drones|impresora|impresoras|taladro|taladros|"
+                r"computador|computadores|equipo|equipos|switch|switches|"
+                r"gpu|ups|camara|camaras|sensor|sensores)\s+"
+                r"(.+?)(?=\s+(?:hay|estan|esta|disponib|en\s+stock)\b|$)",
+                q,
+            )
+
+            if entity_match:
+                candidate = entity_match.group(1).strip(" ,.;:-")
+                generic = {"3d", "de mano", "digital", "principal", "principales"}
+                if candidate and candidate not in generic:
+                    description_contains = candidate.upper()
+
+        if description_contains is not None:
+            field = (
+                "stock"
+                if ("stock" in q or "disponib" in q or "existencia" in q)
+                else "quantity"
+            )
+            return StructuredQuery(
+                matched=True,
+                field=field,
+                operator="lookup",
+                description_contains=description_contains,
+                reason="Lookup seguro de entidad explícita no reconocida por marca/modelo.",
+            )
+
+        # -------------------------------------------------------------
         # Lookup puntual prioritario
         # -------------------------------------------------------------
         if model is not None and any(
@@ -671,6 +708,27 @@ class StructuredInventoryEngine:
             or target in normalize(getattr(record, "text", ""))
         )
 
+    @classmethod
+    def _matches_description(cls, record, description_contains: str | None) -> bool:
+        if not description_contains:
+            return True
+        target_tokens = set(re.findall(r"[a-z0-9._/+\-]{2,}", normalize(description_contains)))
+        if not target_tokens:
+            return True
+        haystack = " ".join(
+            str(value)
+            for value in (
+                cls._get(record, "description", ""),
+                cls._get(record, "brand", ""),
+                cls._get(record, "model", ""),
+                getattr(record, "title", ""),
+                getattr(record, "text", ""),
+            )
+            if value not in (None, "")
+        )
+        haystack_norm = normalize(haystack)
+        return all(token in haystack_norm for token in target_tokens)
+
     @staticmethod
     def _compare(actual, operator: str, expected) -> bool:
         actual_n = as_number(actual)
@@ -707,6 +765,7 @@ class StructuredInventoryEngine:
             for record in self.rows
             if self._matches_brand(record, query.brand)
             and self._matches_model(record, query.model)
+            and self._matches_description(record, query.description_contains)
         ]
 
     def _response(self, answer, records, query, abstained=False):
