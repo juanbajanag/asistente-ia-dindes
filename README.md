@@ -31,7 +31,7 @@ El sistema implementa un asistente basado en **RAG (Retrieval-Augmented Generati
 12. [Autores y contribuciones](#autores-y-contribuciones)
 13. [Licencia](#licencia)
 14. [Referencias](#referencias)
-15. [Videos](#videos)
+15. [Evidencias audiovisuales](#evidencias-audiovisuales)
 
 ---
 
@@ -272,9 +272,12 @@ Código publicado bajo **MIT License**. Consulte [`LICENSE`](LICENSE).
 
 ---
 
-## Videos
+## Evidencias audiovisuales
 
-- **Video pitch (máximo 5 minutos):** pendiente de incorporar enlace.
-- **Video de respuestas a preguntas:** pendiente de incorporar enlace.
+Los videos correspondientes a la entrega final del proyecto se encuentran disponibles en Google Drive:
 
-Los enlaces se incorporarán en el commit final de entrega.
+- **Pitch del proyecto:** [Ver video del pitch](https://drive.google.com/file/d/1nGOPpTA_TbZDlULKkDk4CfAzSR-SPxne/view?usp=drive_link)
+- **Respuestas a las preguntas de evaluación:** [Ver video de preguntas](https://drive.google.com/file/d/1imeWDIE3BoXDOeyxlsl_FYpRO1rC3L5m/view?usp=drive_link)
+- **Carpeta general de evidencias audiovisuales:** [Abrir carpeta en Google Drive](https://drive.google.com/drive/folders/1l4ujjX6YhCIa7txeRwJmPOV09EsHAWaa?usp=drive_link)
+
+> **Nota:** Los archivos están configurados para visualización mediante enlace.
