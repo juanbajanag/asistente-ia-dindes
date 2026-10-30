@@ -11,7 +11,7 @@ Proyecto académico del curso **Proyecto Integrador en Inteligencia Artificial (
 
 El sistema implementa un asistente basado en **RAG (Retrieval-Augmented Generation)** para recuperar conocimiento técnico, responder consultas con evidencia visible, consultar inventario estructurado y abstenerse cuando no existe evidencia suficiente. La arquitectura principal se diseñó para operación local/on-premise y se creó además una **versión cloud académica** para permitir evaluación remota con datos sintéticos o autorizados.
 
-> 🌐 **Aplicación pública:** [Abrir Asistente IA DINDES](https://asistente-ia-dindes.streamlit.app/)
+> 🌐 **Aplicación cloud académica:** [Abrir Asistente IA DINDES](https://asistente-ia-dindes.streamlit.app/)
 
 ---
 
@@ -32,7 +32,7 @@ El sistema implementa un asistente basado en **RAG (Retrieval-Augmented Generati
 13. [Licencia](#licencia)
 14. [Referencias](#referencias)
 15. [Evidencias audiovisuales](#evidencias-audiovisuales)
-
+16. [Entregables finales](#entregables-finales)
 ---
 
 ## Problema
@@ -125,7 +125,7 @@ La validación contiene únicamente dos positivos; por ello estas métricas son 
 | Caso | Resultado |
 |---|---|
 | DEWALT DWD024-B3 | Estructurado; stock = 1 |
-| Creality K1 | RAG cuantitativo; cantidad = 1 |
+| Creality K1 | RAG cuantitativo; cantidad = 1; estado = Operativo |
 | Simulador Táctico Submarino | RAG documental |
 | Fragata inexistente | Abstención en retrieval |
 
@@ -281,3 +281,10 @@ Los videos correspondientes a la entrega final del proyecto se encuentran dispon
 - **Carpeta general de evidencias audiovisuales:** [Abrir carpeta en Google Drive](https://drive.google.com/drive/folders/1l4ujjX6YhCIa7txeRwJmPOV09EsHAWaa?usp=drive_link)
 
 > **Nota:** Los archivos están configurados para visualización mediante enlace.
+
+---
+
+## Entregables finales
+
+- [Informe técnico final](docs/entregables/Informe_Final_Asistente_IA_DINDES.docx)
+- [Presentación final](docs/entregables/Pitch_Asistente_IA_DINDES_Grupo7_UEES.pptx)
